@@ -1,0 +1,72 @@
+{
+  "type": "module",
+  "name": "better-auth-adapter-mikro-orm",
+  "version": "0.0.0",
+  "description": "Mikro ORM Adapter for Better Auth",
+  "keywords": [
+    "auth",
+    "better-auth",
+    "db",
+    "database",
+    "adapter",
+    "better-auth-adapter",
+    "mikro-orm"
+  ],
+  "author": "Nick K.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/octet-stream/eri.git"
+  },
+  "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
+  "main": "./lib/better-auth-adapter-mikro-orm.cjs",
+  "exports": {
+    ".": {
+      "node": {
+        "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
+        "module-sync": "./lib/better-auth-adapter-mikro-orm.js",
+        "default": "./lib/better-auth-adapter-mikro-orm.cjs"
+      },
+      "import": {
+        "types": "./lib/better-auth-adapter-mikro-orm.d.ts",
+        "default": "./lib/better-auth-adapter-mikro-orm.js"
+      },
+      "default": {
+        "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
+        "default": "./lib/better-auth-adapter-mikro-orm.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "del-cli lib && tsup-node",
+    "test": "vitest run",
+    "test.watch": "vitest",
+    "test.ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "prepare": "node --no-warnings --experimental-strip-types .husky/install.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@mikro-orm/better-sqlite": "6.4.1",
+    "@mikro-orm/core": "6.4.1",
+    "@types/node": "22.10.2",
+    "@vitest/coverage-v8": "2.1.8",
+    "@vitest/ui": "2.1.8",
+    "better-auth": "1.0.19",
+    "del-cli": "6.0.0",
+    "husky": "9.1.7",
+    "is-in-ci": "1.0.0",
+    "tsup": "8.3.5",
+    "typescript": "5.7.2",
+    "vitest": "2.1.8"
+  },
+  "dependencies": {
+    "dset": "3.1.4"
+  },
+  "peerDependencies": {
+    "@mikro-orm/better-sqlite": ">= 6.x < 7",
+    "@mikro-orm/core": ">= 6.x < 7",
+    "better-auth": "^1.0.19"
+  }
+}

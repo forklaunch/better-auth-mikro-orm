@@ -1,0 +1,16 @@
+{
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "outDir": "./lib",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "target": "esnext",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "experimentalDecorators": true
+  }
+}
