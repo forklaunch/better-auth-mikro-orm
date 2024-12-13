@@ -1,8 +1,8 @@
 import {rm} from "node:fs/promises"
 import {join} from "node:path"
 
-import {MikroORM} from "@mikro-orm/better-sqlite"
 import {faker} from "@faker-js/faker"
+import {MikroORM} from "@mikro-orm/better-sqlite"
 import type {
   Session as DatabaseSession,
   User as DatabaseUser
