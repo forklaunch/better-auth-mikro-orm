@@ -1,5 +1,5 @@
 {
-  "[typescript][typescriptreact][javascript][jsonc][json]": {
+  "[typescript][jsonc][json]": {
     "editor.defaultFormatter": "biomejs.biome",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
@@ -7,13 +7,5 @@
     }
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-    ["c[nx]\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
-  "tailwindCSS.emmetCompletions": true,
-  "files.associations": {
-    "tailwind.css": "tailwindcss"
-  }
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }
