@@ -2,10 +2,12 @@ import {rm} from "node:fs/promises"
 import {join} from "node:path"
 
 import {MikroORM} from "@mikro-orm/better-sqlite"
+import {faker} from "@faker-js/faker"
 import type {
   Session as DatabaseSession,
   User as DatabaseUser
 } from "better-auth"
+import {generateId} from "better-auth"
 import {afterAll, beforeAll, beforeEach, describe, expect, test} from "vitest"
 
 import {mikroOrmAdapter} from "../adapter.js"
@@ -21,6 +23,15 @@ interface SessionInput {
   token: string
   userId: string
   expiresAt: Date
+}
+
+function createRandomUser(): UserInput {
+  const firstName = faker.person.firstName()
+  const lastName = faker.person.lastName()
+  const name = [firstName, lastName].join(" ")
+  const email = faker.internet.email({firstName, lastName})
+
+  return {email, name}
 }
 
 const dbName = join(import.meta.dirname, "test.sqlite")
@@ -45,37 +56,29 @@ afterAll(async () => {
 
 describe("create", () => {
   test("Creates a record", async () => {
-    const user = await adapter.create<UserInput, DatabaseUser>({
+    const expected = createRandomUser()
+    const actual = await adapter.create<UserInput, DatabaseUser>({
       model: "user",
-      data: {
-        email: "john.doe@example.com",
-        name: "John Doe"
-      }
+      data: expected
     })
 
-    expect(user).toMatchObject({
-      email: "john.doe@example.com",
-      name: "John Doe"
-    })
+    expect(actual).toMatchObject(expected)
   })
 
   test("Creates a record with referenes", async () => {
-    const user = orm.em.create(entities.User, {
-      email: "john.doe@example.com",
-      name: "John Doe"
-    })
+    const user = orm.em.create(entities.User, createRandomUser())
 
     await orm.em.persistAndFlush(user)
 
-    const session = await adapter.create<SessionInput, DatabaseSession>({
+    const actual = await adapter.create<SessionInput, DatabaseSession>({
       model: "session",
       data: {
-        token: crypto.randomUUID(),
+        token: generateId(),
         userId: user.id,
         expiresAt: new Date()
       }
     })
 
-    expect(session.userId).toBe(user.id)
+    expect(actual.userId).toBe(user.id)
   })
 })
