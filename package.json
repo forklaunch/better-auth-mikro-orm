@@ -42,6 +42,7 @@
     },
     "./package.json": "./package.json"
   },
+  "files": ["lib"],
   "scripts": {
     "build": "del-cli lib && tsup-node",
     "test": "vitest run",
