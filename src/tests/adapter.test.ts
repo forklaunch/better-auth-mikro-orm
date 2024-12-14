@@ -130,9 +130,7 @@ describe("create", () => {
   })
 
   adapterTest("with a reference", async ({randomUsers}) => {
-    const user = orm.em.create(entities.User, randomUsers.getSingle())
-
-    await orm.em.persistAndFlush(user)
+    const user = await randomUsers.seedSingle()
 
     const actual = await adapter.create<SessionInput, DatabaseSession>({
       model: "session",
@@ -195,10 +193,7 @@ describe("create", () => {
 
 describe("findOne", () => {
   adapterTest("by id", async ({randomUsers}) => {
-    const expected = orm.em.create(entities.User, randomUsers.getSingle())
-
-    await orm.em.persistAndFlush(expected)
-
+    const expected = await randomUsers.seedSingle()
     const actual = await adapter.findOne<DatabaseUser>({
       model: "user",
       where: [
@@ -213,10 +208,7 @@ describe("findOne", () => {
   })
 
   adapterTest("by arbitary field", async ({randomUsers}) => {
-    const expected = orm.em.create(entities.User, randomUsers.getSingle())
-
-    await orm.em.persistAndFlush(expected)
-
+    const expected = await randomUsers.seedSingle()
     const actual = await adapter.findOne<DatabaseUser>({
       model: "user",
       where: [
@@ -231,10 +223,7 @@ describe("findOne", () => {
   })
 
   adapterTest("returns only selected fields", async ({randomUsers}) => {
-    const user = orm.em.create(entities.User, randomUsers.getSingle())
-
-    await orm.em.persistAndFlush(user)
-
+    const user = await randomUsers.seedSingle()
     const actual = await adapter.findOne({
       model: "user",
       where: [
@@ -322,6 +311,25 @@ describe("findMany", () => {
     })
 
     expect(actual.map(({id}) => id)).toEqual([user3.id, user2.id, user1.id])
+  })
+
+  describe("operators", () => {
+    adapterTest("in", async ({randomUsers}) => {
+      const [user1, , user3] = await randomUsers.seedMany(3)
+
+      const actual = await adapter.findMany<DatabaseUser>({
+        model: "user",
+        where: [
+          {
+            field: "id",
+            operator: "in",
+            value: [user1.id, user3.id]
+          }
+        ]
+      })
+
+      expect(actual.map(({id}) => id)).toEqual([user1.id, user3.id])
+    })
   })
 })
 
