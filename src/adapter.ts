@@ -17,6 +17,7 @@ import {createAdapterUtils} from "./utils/adapterUtils.js"
 export function mikroOrmAdapter(orm: MikroORM) {
   const {
     normalizeEntityName,
+    getEntityMetadata,
     getFieldPath,
     normalizeInput,
     normalizeOutput,
@@ -26,8 +27,8 @@ export function mikroOrmAdapter(orm: MikroORM) {
   const adapter = (options: BetterAuthOptions = {}): Adapter => ({
     id: "mikro-orm",
     async create({model, data, select}) {
-      const entityName = normalizeEntityName(model)
-      const input = normalizeInput(entityName, data)
+      const metadata = getEntityMetadata(model)
+      const input = normalizeInput(metadata, data)
 
       if (options.advanced?.generateId !== false) {
         input.id =
@@ -36,28 +37,28 @@ export function mikroOrmAdapter(orm: MikroORM) {
             : generateId()
       }
 
-      const entity = orm.em.create(entityName, input)
+      const entity = orm.em.create(metadata.class, input)
 
       await orm.em.persistAndFlush(entity)
 
-      return normalizeOutput(entityName, entity, select) as any
+      return normalizeOutput(metadata, entity, select) as any
     },
-    async findOne({model: entityName, where, select}) {
-      entityName = normalizeEntityName(entityName)
+    async findOne({model, where, select}) {
+      const metadata = getEntityMetadata(model)
 
       const entity = await orm.em.findOne(
-        entityName,
-        normalizeWhereClauses(entityName, where)
+        metadata.class,
+        normalizeWhereClauses(metadata, where)
       )
 
       if (!entity) {
         return null
       }
 
-      return normalizeOutput(entityName, entity, select) as any
+      return normalizeOutput(metadata, entity, select) as any
     },
-    async findMany({model: entityName, where, limit, offset, sortBy}) {
-      entityName = normalizeEntityName(entityName)
+    async findMany({model, where, limit, offset, sortBy}) {
+      const metadata = getEntityMetadata(model)
 
       const options: FindOptions<any> = {
         limit,
@@ -65,66 +66,66 @@ export function mikroOrmAdapter(orm: MikroORM) {
       }
 
       if (sortBy) {
-        const path = getFieldPath(entityName, sortBy.field)
+        const path = getFieldPath(metadata, sortBy.field)
         dset(options, ["orderBy", ...path], sortBy.direction)
       }
 
       const rows = await orm.em.find(
-        entityName,
-        normalizeWhereClauses(entityName, where),
+        metadata.class,
+        normalizeWhereClauses(metadata, where),
         options
       )
 
-      return rows.map(row => normalizeOutput(entityName, row)) as any
+      return rows.map(row => normalizeOutput(metadata, row)) as any
     },
-    async update({model: entityName, where, update}) {
-      entityName = normalizeEntityName(entityName)
+    async update({model, where, update}) {
+      const metadata = getEntityMetadata(model)
 
       const entity = await orm.em.findOne(
-        entityName,
-        normalizeWhereClauses(entityName, where)
+        metadata.class,
+        normalizeWhereClauses(metadata, where)
       )
 
       if (!entity) {
         return null
       }
 
-      orm.em.assign(entity, normalizeInput(entityName, update))
+      orm.em.assign(entity, normalizeInput(metadata, update))
       await orm.em.flush()
 
-      return normalizeOutput(entityName, entity) as any
+      return normalizeOutput(metadata, entity) as any
     },
-    async updateMany({model: entityName, where, update}) {
-      entityName = normalizeEntityName(entityName)
+    async updateMany({model, where, update}) {
+      const metadata = getEntityMetadata(model)
 
       const affected = await orm.em.nativeUpdate(
-        entityName,
-        normalizeWhereClauses(entityName, where),
-        normalizeInput(entityName, update)
+        metadata.class,
+        normalizeWhereClauses(metadata, where),
+        normalizeInput(metadata, update)
       )
 
       orm.em.clear()
 
       return affected
     },
-    async delete({model: entityName, where}) {
-      entityName = normalizeEntityName(entityName)
+    async delete({model, where}) {
+      const metadata = getEntityMetadata(model)
 
       const entity = await orm.em.findOne(
-        entityName,
-        normalizeWhereClauses(entityName, where)
+        metadata.class,
+        normalizeWhereClauses(metadata, where)
       )
 
       if (entity) {
         await orm.em.removeAndFlush(entity)
       }
     },
-    async deleteMany({model: entityName, where}) {
-      entityName = normalizeEntityName(entityName)
+    async deleteMany({model, where}) {
+      const metadata = getEntityMetadata(model)
 
       const affected = await orm.em.nativeDelete(
-        entityName,
-        normalizeWhereClauses(entityName, where)
+        metadata.class,
+        normalizeWhereClauses(metadata, where)
       )
 
       orm.em.clear() // This clears the IdentityMap

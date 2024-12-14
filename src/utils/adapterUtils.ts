@@ -14,6 +14,15 @@ export interface AdapterUtils {
   normalizeEntityName(name: string): string
 
   /**
+   * Returns metadata for given `entityName` from MetadataStorage.
+   *
+   * @param entityName - The name of the entity to get the metadata for
+   *
+   * @throws BetterAuthError when no metadata found
+   */
+  getEntityMetadata(name: string): EntityMetadata
+
+  /**
    * Returns a path to a `field` reference.
    *
    * @param entityName - The name of the entity
@@ -24,7 +33,7 @@ export interface AdapterUtils {
    * @throws BetterAuthError if complex primary key is discovered in `fieldName` relation
    */
   getFieldPath(
-    entityName: string,
+    metadata: EntityMetadata,
     fieldName: string,
     throwOnShadowProps?: boolean
   ): string[]
@@ -36,7 +45,7 @@ export interface AdapterUtils {
    * @param input - The data to normalize
    */
   normalizeInput(
-    entityName: string,
+    metadata: EntityMetadata,
     input: Record<string, any>
   ): Record<string, any>
 
@@ -48,7 +57,7 @@ export interface AdapterUtils {
    * @param select - A list of fields to return
    */
   normalizeOutput(
-    entityName: string,
+    metadata: EntityMetadata,
     output: Record<string, any>,
     select?: string[]
   ): Record<string, any>
@@ -60,7 +69,7 @@ export interface AdapterUtils {
    * @param where - A list where clause(s) to normalize
    */
   normalizeWhereClauses(
-    entityName: string,
+    metadata: EntityMetadata,
     where?: Where[]
   ): Record<string, any>
 }
@@ -77,14 +86,11 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   const normalizeEntityName: AdapterUtils["normalizeEntityName"] = name =>
     naming.getEntityName(naming.classToTableName(name))
 
-  /**
-   * Returns metadata for given `entityName` from MetadataStorage.
-   *
-   * @param entityName - The name of the entity to get the metadata for
-   *
-   * @throws BetterAuthError when no metadata found
-   */
-  function getEntityMetadata(entityName: string) {
+  const getEntityMetadata: AdapterUtils["getEntityMetadata"] = (
+    entityName: string
+  ) => {
+    entityName = normalizeEntityName(entityName)
+
     if (!metadata.has(entityName)) {
       createAdapterError(
         `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
@@ -155,16 +161,18 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
    * @param prop - Property metadata
    */
   const getReferencedPropertyName = (
-    entityName: string,
+    metadata: EntityMetadata,
     prop: EntityProperty
-  ) => naming.columnNameToProperty(getReferencedColumnName(entityName, prop))
+  ) =>
+    naming.columnNameToProperty(
+      getReferencedColumnName(metadata.className, prop)
+    )
 
   const getFieldPath: AdapterUtils["getFieldPath"] = (
-    entityName,
+    metadata,
     fieldName,
     throwOnShadowProps = false
   ) => {
-    const metadata = getEntityMetadata(entityName)
     const prop = getPropertyMetadata(metadata, fieldName)
 
     if (prop.persist === false && throwOnShadowProps) {
@@ -188,17 +196,14 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     }
 
     createAdapterError(
-      `Cannot normalize "${fieldName}" field name into path for "${entityName} entity."`
+      `Cannot normalize "${fieldName}" field name into path for "${metadata.className} entity."`
     )
   }
 
-  const normalizeInput: AdapterUtils["normalizeInput"] = (
-    entityName,
-    input
-  ) => {
+  const normalizeInput: AdapterUtils["normalizeInput"] = (metadata, input) => {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
-      const path = getFieldPath(entityName, key)
+      const path = getFieldPath(metadata, key)
       dset(fields, path, value)
     })
 
@@ -206,18 +211,17 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   }
 
   const normalizeOutput: AdapterUtils["normalizeOutput"] = (
-    entityName: string,
-    output: Record<string, any>,
-    select?: string[]
+    metadata,
+    output,
+    select
   ) => {
-    const metadata = getEntityMetadata(entityName)
     output = serialize(output)
 
     const result: Record<string, any> = {}
     Object.entries(output)
       .map(([key, value]) => ({
         path: getReferencedPropertyName(
-          entityName,
+          metadata,
           getPropertyMetadata(metadata, key)
         ),
         value
@@ -271,14 +275,8 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     return createWhereClause(path, value, "$in", target)
   }
 
-  /**
-   * Transfroms hiven list of Where clause(s) for Mikro ORM.
-   *
-   * @param entityName - Entity name
-   * @param where - A list where clause(s) to normalize
-   */
   const normalizeWhereClauses: AdapterUtils["normalizeWhereClauses"] = (
-    entityName,
+    metadata,
     where
   ) => {
     if (!where) {
@@ -292,7 +290,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         return {}
       }
 
-      const path = getFieldPath(entityName, w.field, true)
+      const path = getFieldPath(metadata, w.field, true)
 
       if (w.operator === "in") {
         return createWhereInClause(w.field, path, w.value)
@@ -322,9 +320,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     where
       .filter(({connector}) => !connector || connector === "AND")
       .forEach(({field, operator, value}, index) => {
-        const path = ["$and", index].concat(
-          getFieldPath(entityName, field, true)
-        )
+        const path = ["$and", index].concat(getFieldPath(metadata, field, true))
 
         if (operator === "in") {
           return createWhereInClause(field, path, value, result)
@@ -336,9 +332,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     where
       .filter(({connector}) => connector === "OR")
       .forEach(({field, value}, index) => {
-        const path = ["$and", index].concat(
-          getFieldPath(entityName, field, true)
-        )
+        const path = ["$and", index].concat(getFieldPath(metadata, field, true))
 
         return createWhereClause(path, value, "eq", result)
       })
@@ -347,6 +341,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   }
 
   return {
+    getEntityMetadata,
     normalizeEntityName,
     getFieldPath,
     normalizeInput,
