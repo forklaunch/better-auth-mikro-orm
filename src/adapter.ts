@@ -16,7 +16,6 @@ import {createAdapterUtils} from "./utils/adapterUtils.js"
  */
 export function mikroOrmAdapter(orm: MikroORM) {
   const {
-    normalizeEntityName,
     getEntityMetadata,
     getFieldPath,
     normalizeInput,
