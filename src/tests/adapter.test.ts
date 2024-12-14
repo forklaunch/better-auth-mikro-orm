@@ -8,6 +8,7 @@ import type {
   User as DatabaseUser
 } from "better-auth"
 import {BetterAuthError, generateId} from "better-auth"
+import {NIL} from "uuid"
 import {
   afterAll,
   beforeAll,
@@ -17,7 +18,6 @@ import {
   test,
   vi
 } from "vitest"
-import {NIL} from "uuid"
 
 import {mikroOrmAdapter} from "../index.js"
 
