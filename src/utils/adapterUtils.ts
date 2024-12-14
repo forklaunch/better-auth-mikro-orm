@@ -292,11 +292,9 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
 
       const path = getFieldPath(metadata, w.field, true)
 
-      if (w.operator === "in") {
-        return createWhereInClause(w.field, path, w.value)
-      }
-
       switch (w.operator) {
+        case "in":
+          return createWhereInClause(w.field, path, w.value)
         case "contains":
           return createWhereClause(path, `%${w.value}%`, "$like")
         case "starts_with":
