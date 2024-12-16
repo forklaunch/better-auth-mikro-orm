@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "better-auth-adapter-mikro-orm",
+  "name": "better-auth-mikro-orm",
   "version": "0.0.0",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
@@ -16,28 +16,28 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/octet-stream/eri.git"
+    "url": "git+ssh://git@github.com/octet-stream/better-auth-mikro-orm.git"
   },
   "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
   "engines": {
     "node": ">= 18"
   },
-  "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
-  "main": "./lib/better-auth-adapter-mikro-orm.cjs",
+  "types": "./lib/adapter.d.cts",
+  "main": "./lib/adapter.cjs",
   "exports": {
     ".": {
       "node": {
-        "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
-        "module-sync": "./lib/better-auth-adapter-mikro-orm.js",
-        "default": "./lib/better-auth-adapter-mikro-orm.cjs"
+        "types": "./lib/adapter.d.cts",
+        "module-sync": "./lib/adapter.js",
+        "default": "./lib/adapter.cjs"
       },
       "import": {
-        "types": "./lib/better-auth-adapter-mikro-orm.d.ts",
-        "default": "./lib/better-auth-adapter-mikro-orm.js"
+        "types": "./lib/adapter.d.ts",
+        "default": "./lib/adapter.js"
       },
       "default": {
-        "types": "./lib/better-auth-adapter-mikro-orm.d.cts",
-        "default": "./lib/better-auth-adapter-mikro-orm.cjs"
+        "types": "./lib/adapter.d.cts",
+        "default": "./lib/adapter.cjs"
       }
     },
     "./package.json": "./package.json"

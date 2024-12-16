@@ -1,4 +1,4 @@
-# better-auth-adapter-mikro-orm
+# better-auth-mikro-orm
 
 [Mikro ORM](https://mikro-orm.io/) adapter for [Better Auth](https://www.better-auth.com/)
 
@@ -7,13 +7,13 @@
 pnpm:
 
 ```sh
-pnpm add better-auth-adapter-mikro-orm
+pnpm add better-auth-mikro-orm
 ```
 
 npm:
 
 ```sh
-npm i better-auth-adapter-mikro-orm
+npm i better-auth-mikro-orm
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ npm i better-auth-adapter-mikro-orm
 To use Mikro ORM adapter with Better Auth you would need to pass the result of `mikroOrmAdapter` call to the `database` option like this:
 
 ```ts
-import {mikroOrmAdapter} from "better-auth-adapter-mikro-orm"
+import {mikroOrmAdapter} from "better-auth-mikro-orm"
 import {betterAuth} from "better-auth"
 
 import {orm} from "./orm.js" // Your Mikro ORM instance
