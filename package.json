@@ -49,8 +49,8 @@
     "test.watch": "vitest",
     "test.ui": "vitest --ui",
     "coverage": "vitest run --coverage",
-    "release": "pnpm build && pnpm changeset publish",
-    "prepare": "node --no-warnings --experimental-strip-types .husky/install.ts"
+    "release": "pnpm build && changeset publish",
+    "prepare": "npx --yes is-in-ci || husky"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
