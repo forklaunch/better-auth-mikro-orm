@@ -1,7 +1,8 @@
 {
+  "private": false,
   "type": "module",
   "name": "better-auth-mikro-orm",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
     "auth",
