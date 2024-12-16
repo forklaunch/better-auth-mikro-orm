@@ -19,7 +19,7 @@ npm i better-auth-mikro-orm
 ## Usage
 
 1. First you'll need to set up Mikro ORM and define the [core schema](https://www.better-auth.com/docs/concepts/database#core-schema) for Better Auth.
-If you use any plugin don't forget to check if they have any additional database schema schema, then define entities you'll need for each plugin.
+If you use any plugin - don't forget to check if they have any additional database schema definitions, then define entities you'll need for each plugin.
 2. When you done with the schema definition you can simply pass the result of `mikroOrmAdapter` call to the `database` option like this:
 
 ```ts
