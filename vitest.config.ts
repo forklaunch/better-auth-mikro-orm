@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     pool: "threads",
     include: ["**/*.test.ts"],
+    reporters: ["default", "junit"],
+    outputFile: "./vitest-report.junit.xml",
     coverage: {
       include: ["src"],
       exclude: ["src/tests/**"]
