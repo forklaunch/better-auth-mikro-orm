@@ -8,16 +8,8 @@ import type {
   User as DatabaseUser
 } from "better-auth"
 import {BetterAuthError, generateId} from "better-auth"
-import {NIL} from "uuid"
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi
-} from "vitest"
+import {validate} from "uuid"
+import {afterAll, beforeAll, beforeEach, describe, expect, test} from "vitest"
 
 import {mikroOrmAdapter} from "../index.js"
 
@@ -164,31 +156,20 @@ describe("create", () => {
     }
   )
 
-  adapterTest(
-    "generateId disabled and handled by ORM",
+  adapterTest("id can be managed by the orm", async ({randomUsers}) => {
+    const adapter = mikroOrmAdapter(orm)({
+      advanced: {
+        generateId: false
+      }
+    })
 
-    async ({randomUsers, onTestFinished}) => {
-      const fn = vi.spyOn(crypto, "randomUUID").mockReturnValue(NIL)
+    const actual = await adapter.create<UserInput, DatabaseUser>({
+      model: "user",
+      data: randomUsers.getSingle()
+    })
 
-      onTestFinished(() => {
-        fn.mockRestore()
-      })
-
-      const adapter = mikroOrmAdapter(orm)({
-        advanced: {
-          generateId: false
-        }
-      })
-
-      await adapter.create<UserInput, DatabaseUser>({
-        model: "user",
-        data: randomUsers.getSingle()
-      })
-
-      expect(fn).toHaveBeenCalledOnce()
-      expect(fn).toHaveReturnedWith(NIL)
-    }
-  )
+    expect(validate(actual.id)).toBe(true)
+  })
 })
 
 describe("findOne", () => {
