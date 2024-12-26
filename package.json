@@ -2,7 +2,7 @@
   "private": false,
   "type": "module",
   "name": "better-auth-mikro-orm",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
     "auth",
@@ -43,7 +43,9 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "del-cli lib && tsup-node",
     "test": "vitest run",
