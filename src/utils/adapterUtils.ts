@@ -74,6 +74,8 @@ export interface AdapterUtils {
   ): Record<string, any>
 }
 
+const ownReferences = [ReferenceKind.SCALAR, ReferenceKind.ONE_TO_MANY]
+
 /**
  * Creates bunch of utilities for adapter
  *
@@ -111,13 +113,14 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     fieldName: string
   ): EntityProperty {
     const prop = metadata.props.find(prop => {
-      if (prop.kind === ReferenceKind.SCALAR && prop.name === fieldName) {
+      if (ownReferences.includes(prop.kind) && prop.name === fieldName) {
         return true
       }
 
       if (
-        (prop.kind === ReferenceKind.MANY_TO_ONE && prop.name === fieldName) ||
-        prop.fieldNames.includes(naming.propertyToColumnName(fieldName))
+        prop.kind === ReferenceKind.MANY_TO_ONE &&
+        (prop.name === fieldName ||
+          prop.fieldNames.includes(naming.propertyToColumnName(fieldName)))
       ) {
         return true
       }
@@ -141,7 +144,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
    * @param prop - Property metadata
    */
   function getReferencedColumnName(entityName: string, prop: EntityProperty) {
-    if (prop.kind === ReferenceKind.SCALAR) {
+    if (ownReferences.includes(prop.kind)) {
       return prop.name
     }
 
