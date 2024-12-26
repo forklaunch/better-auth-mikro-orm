@@ -1,7 +1,15 @@
-import {Entity, type Opt, Property, Unique} from "@mikro-orm/core"
+import {
+  Collection,
+  Entity,
+  OneToMany,
+  type Opt,
+  Property,
+  Unique
+} from "@mikro-orm/core"
 import type {User as DatabaseUser} from "better-auth"
 
 import {Base} from "./Base.js"
+import {Session} from "./Session.js"
 
 @Entity()
 export class User extends Base implements DatabaseUser {
@@ -14,4 +22,7 @@ export class User extends Base implements DatabaseUser {
 
   @Property({type: "string"})
   name!: string
+
+  @OneToMany(() => Session, "user")
+  sessions = new Collection<Session, this>(this)
 }
