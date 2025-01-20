@@ -1,118 +1,26 @@
-import {rm} from "node:fs/promises"
-import {join} from "node:path"
-
-import {faker} from "@faker-js/faker"
-import {MikroORM} from "@mikro-orm/better-sqlite"
 import type {
   Session as DatabaseSession,
   User as DatabaseUser
 } from "better-auth"
 import {BetterAuthError, generateId} from "better-auth"
 import {validate} from "uuid"
-import {afterAll, beforeAll, beforeEach, describe, expect, test} from "vitest"
+import {describe, expect, test} from "vitest"
 
 import {mikroOrmAdapter} from "../index.js"
 
-import * as entities from "./entities.js"
+import {createOrm} from "./fixtures/orm.js"
+import {createRandomUsersUtils} from "./fixtures/randomUsers.js"
+import type {SessionInput, UserInput} from "./types.js"
 
-interface UserInput {
-  email: string
-  name: string
-}
+const orm = createOrm()
 
-interface SessionInput {
-  token: string
-  userId: string
-  expiresAt: Date
-}
-
-const dbName = join(import.meta.dirname, "test.sqlite")
-
-const orm = MikroORM.initSync({
-  dbName,
-  ensureDatabase: true,
-  allowGlobalContext: true,
-  entities: Object.values(entities)
-})
+const randomUsers = createRandomUsersUtils(orm)
 
 const adapter = mikroOrmAdapter(orm)()
 
-type GetRandomUsers = (amount?: number) => UserInput[]
-
-type GetRandomUser = () => UserInput
-
-type SeedRandomUsers = (amount?: number) => Promise<entities.User[]>
-
-type SeedRandomUser = () => Promise<entities.User>
-
-interface AdapterTestUsersContext {
-  getMany: GetRandomUsers
-  getSingle: GetRandomUser
-  seedSingle: SeedRandomUser
-  seedMany: SeedRandomUsers
-}
-
-interface AdapterTest {
-  randomUsers: AdapterTestUsersContext
-}
-
-const createRandomUser: GetRandomUser = () => {
-  const firstName = faker.person.firstName()
-  const lastName = faker.person.lastName()
-  const name = [firstName, lastName].join(" ")
-  const email = faker.internet.email({firstName, lastName})
-
-  return {email, name}
-}
-
-const getRandomUsers: GetRandomUsers = (amount = 1) =>
-  Array.from({length: amount}, () => createRandomUser())
-
-const seedRandomUser: SeedRandomUser = async () => {
-  const user = orm.em.create(entities.User, createRandomUser(), {
-    persist: true
-  })
-
-  await orm.em.flush()
-
-  return user
-}
-
-const seedRandomUsers: SeedRandomUsers = async amount => {
-  const users = getRandomUsers(amount).map(user =>
-    orm.em.create(entities.User, user, {
-      persist: true
-    })
-  )
-
-  await orm.em.flush()
-
-  return users
-}
-
-const adapterTest = test.extend<AdapterTest>({
-  async randomUsers({task: _}, use) {
-    await use({
-      getMany: getRandomUsers,
-      getSingle: createRandomUser,
-      seedSingle: seedRandomUser,
-      seedMany: seedRandomUsers
-    })
-  }
-})
-
-beforeAll(async () => await orm.connect())
-
-beforeEach(async () => await orm.getSchemaGenerator().refreshDatabase())
-
-afterAll(async () => {
-  await orm.close()
-  await rm(dbName)
-})
-
 describe("create", () => {
-  adapterTest("a new record", async ({randomUsers}) => {
-    const expected = randomUsers.getSingle()
+  test("a new record", async () => {
+    const expected = randomUsers.createOne()
     const actual = await adapter.create<UserInput, DatabaseUser>({
       model: "user",
       data: expected
@@ -121,8 +29,8 @@ describe("create", () => {
     expect(actual).toMatchObject(expected)
   })
 
-  adapterTest("with a reference", async ({randomUsers}) => {
-    const user = await randomUsers.seedSingle()
+  test("with a reference", async () => {
+    const user = await randomUsers.createAndFlushOne()
 
     const actual = await adapter.create<SessionInput, DatabaseSession>({
       model: "session",
@@ -136,27 +44,23 @@ describe("create", () => {
     expect(actual.userId).toBe(user.id)
   })
 
-  adapterTest(
-    "custom generateId function",
+  test("custom generateId function", async () => {
+    const expected = "451"
+    const adapter = mikroOrmAdapter(orm)({
+      advanced: {
+        generateId: () => expected
+      }
+    })
 
-    async ({randomUsers}) => {
-      const expected = "451"
-      const adapter = mikroOrmAdapter(orm)({
-        advanced: {
-          generateId: () => expected
-        }
-      })
+    const actual = await adapter.create<UserInput, DatabaseUser>({
+      model: "user",
+      data: randomUsers.createOne()
+    })
 
-      const actual = await adapter.create<UserInput, DatabaseUser>({
-        model: "user",
-        data: randomUsers.getSingle()
-      })
+    expect(actual.id).toBe(expected)
+  })
 
-      expect(actual.id).toBe(expected)
-    }
-  )
-
-  adapterTest("id can be managed by the orm", async ({randomUsers}) => {
+  test("id can be managed by the orm", async () => {
     const adapter = mikroOrmAdapter(orm)({
       advanced: {
         generateId: false
@@ -165,7 +69,7 @@ describe("create", () => {
 
     const actual = await adapter.create<UserInput, DatabaseUser>({
       model: "user",
-      data: randomUsers.getSingle()
+      data: randomUsers.createOne()
     })
 
     expect(validate(actual.id)).toBe(true)
@@ -173,8 +77,8 @@ describe("create", () => {
 })
 
 describe("findOne", () => {
-  adapterTest("by id", async ({randomUsers}) => {
-    const expected = await randomUsers.seedSingle()
+  test("by id", async () => {
+    const expected = await randomUsers.createAndFlushOne()
     const actual = await adapter.findOne<DatabaseUser>({
       model: "user",
       where: [
@@ -188,8 +92,8 @@ describe("findOne", () => {
     expect(actual?.id).toBe(expected.id)
   })
 
-  adapterTest("by arbitary field", async ({randomUsers}) => {
-    const expected = await randomUsers.seedSingle()
+  test("by arbitary field", async () => {
+    const expected = await randomUsers.createAndFlushOne()
     const actual = await adapter.findOne<DatabaseUser>({
       model: "user",
       where: [
@@ -203,8 +107,8 @@ describe("findOne", () => {
     expect(actual?.id).toBe(expected.id)
   })
 
-  adapterTest("returns only selected fields", async ({randomUsers}) => {
-    const user = await randomUsers.seedSingle()
+  test("returns only selected fields", async () => {
+    const user = await randomUsers.createAndFlushOne()
     const actual = await adapter.findOne({
       model: "user",
       where: [
@@ -219,7 +123,7 @@ describe("findOne", () => {
     expect(actual).toEqual({email: user.email})
   })
 
-  adapterTest("returns null for nonexistent record", async () => {
+  test("returns null for nonexistent record", async () => {
     const actual = adapter.findOne<DatabaseUser>({
       model: "user",
       where: [
@@ -235,8 +139,8 @@ describe("findOne", () => {
 })
 
 describe("findMany", () => {
-  adapterTest("returns all records", async ({randomUsers}) => {
-    const users = await randomUsers.seedMany(10)
+  test("returns all records", async () => {
+    const users = await randomUsers.createAndFlushMany(10)
     const actual = await adapter.findMany<DatabaseUser>({
       model: "user"
     })
@@ -244,9 +148,9 @@ describe("findMany", () => {
     expect(actual.map(({id}) => id)).toEqual(users.map(({id}) => id))
   })
 
-  adapterTest("limit", async ({randomUsers}) => {
+  test("limit", async () => {
     const limit = 6
-    const users = await randomUsers.seedMany(10)
+    const users = await randomUsers.createAndFlushMany(10)
 
     const expected = users.slice(0, limit).map(({id}) => id)
     const actual = await adapter.findMany<DatabaseUser>({
@@ -257,9 +161,9 @@ describe("findMany", () => {
     expect(actual.map(({id}) => id)).toEqual(expected)
   })
 
-  adapterTest("offset", async ({randomUsers}) => {
+  test("offset", async () => {
     const offset = 3
-    const users = await randomUsers.seedMany(4)
+    const users = await randomUsers.createAndFlushMany(4)
 
     const expected = users.slice(offset).map(({id}) => id)
     const actual = await adapter.findMany<DatabaseUser>({
@@ -270,18 +174,15 @@ describe("findMany", () => {
     expect(actual.map(({id}) => id)).toEqual(expected)
   })
 
-  adapterTest("sortBy", async ({randomUsers}) => {
-    const users = randomUsers.getMany(3).map((user, index) =>
-      orm.em.create(entities.User, {
-        ...user,
+  test("sortBy", async () => {
+    const [user1, user2, user3] = await randomUsers.createAndFlushMany(
+      3,
 
+      (user, index) => ({
+        ...user,
         email: `user-${index + 1}@example.com`
       })
     )
-
-    await orm.em.persistAndFlush(users)
-
-    const [user1, user2, user3] = users
 
     const actual = await adapter.findMany<DatabaseUser>({
       model: "user",
@@ -295,8 +196,8 @@ describe("findMany", () => {
   })
 
   describe("operators", () => {
-    adapterTest("in", async ({randomUsers}) => {
-      const [user1, , user3] = await randomUsers.seedMany(3)
+    test("in", async () => {
+      const [user1, , user3] = await randomUsers.createAndFlushMany(3)
 
       const actual = await adapter.findMany<DatabaseUser>({
         model: "user",
@@ -315,15 +216,17 @@ describe("findMany", () => {
 })
 
 describe("errors", () => {
-  adapterTest("entity not found", async () => {
+  test("entity not found", async () => {
     try {
       await adapter.create({
         model: "unknown",
         data: {}
       })
     } catch (error) {
-      expect(error).toBeInstanceOf(BetterAuthError)
-      expect((error as BetterAuthError).message).toBe(
+      const actual = error as BetterAuthError
+
+      expect(actual).toBeInstanceOf(BetterAuthError)
+      expect(actual.message).toBe(
         '[Mikro ORM Adapter] Cannot find metadata for "Unknown" entity. Make sure it defined and listed in your Mikro ORM config.'
       )
     }
