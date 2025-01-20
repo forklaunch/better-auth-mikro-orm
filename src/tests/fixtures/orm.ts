@@ -7,7 +7,7 @@ import {afterAll, beforeAll, beforeEach} from "vitest"
 import * as entities from "./entities.js"
 
 export function createOrm(): MikroORM {
-  const dbName = join(import.meta.dirname, `${crypto.randomUUID()}.sqlite`)
+  const dbName = join(import.meta.dirname, "test.sqlite")
 
   const orm = MikroORM.initSync({
     dbName,
