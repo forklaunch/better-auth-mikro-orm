@@ -25,6 +25,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
   const adapter = (options: BetterAuthOptions = {}): Adapter => ({
     id: "mikro-orm",
+
     async create({model, data, select}) {
       const metadata = getEntityMetadata(model)
       const input = normalizeInput(metadata, data)
@@ -42,6 +43,11 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
       return normalizeOutput(metadata, entity, select) as any
     },
+
+    async count(): Promise<number> {
+      throw new Error("Not implemented yet, and not included in any release")
+    },
+
     async findOne({model, where, select}) {
       const metadata = getEntityMetadata(model)
 
@@ -56,6 +62,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
       return normalizeOutput(metadata, entity, select) as any
     },
+
     async findMany({model, where, limit, offset, sortBy}) {
       const metadata = getEntityMetadata(model)
 
@@ -77,6 +84,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
       return rows.map(row => normalizeOutput(metadata, row)) as any
     },
+
     async update({model, where, update}) {
       const metadata = getEntityMetadata(model)
 
@@ -94,6 +102,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
       return normalizeOutput(metadata, entity) as any
     },
+
     async updateMany({model, where, update}) {
       const metadata = getEntityMetadata(model)
 
@@ -107,6 +116,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
 
       return affected
     },
+
     async delete({model, where}) {
       const metadata = getEntityMetadata(model)
 
@@ -119,6 +129,7 @@ export function mikroOrmAdapter(orm: MikroORM) {
         await orm.em.removeAndFlush(entity)
       }
     },
+
     async deleteMany({model, where}) {
       const metadata = getEntityMetadata(model)
 
