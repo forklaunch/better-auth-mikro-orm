@@ -1,4 +1,8 @@
 {
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide",
+    "editor.formatOnSave": true
+  },
   "[typescript][jsonc][json]": {
     "editor.defaultFormatter": "biomejs.biome",
     "editor.formatOnSave": true,
