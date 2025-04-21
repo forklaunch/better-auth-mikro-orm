@@ -4,13 +4,13 @@ import type {
 } from "better-auth"
 import {BetterAuthError, generateId} from "better-auth"
 import {validate} from "uuid"
-import {describe, expect, test} from "vitest"
+import {expect, suite, test} from "vitest"
 
-import {mikroOrmAdapter} from "../index.js"
+import {mikroOrmAdapter} from "../../src/index.js"
 
-import {createOrm} from "./fixtures/orm.js"
-import {createRandomUsersUtils} from "./fixtures/randomUsers.js"
-import type {SessionInput, UserInput} from "./types.js"
+import {createOrm} from "../fixtures/orm.js"
+import {createRandomUsersUtils} from "../fixtures/randomUsers.js"
+import type {SessionInput, UserInput} from "../utils/types.js"
 
 const orm = createOrm()
 
@@ -18,7 +18,7 @@ const randomUsers = createRandomUsersUtils(orm)
 
 const adapter = mikroOrmAdapter(orm)()
 
-describe("create", () => {
+suite("create", () => {
   test("a new record", async () => {
     const expected = randomUsers.createOne()
     const actual = await adapter.create<UserInput, DatabaseUser>({
@@ -76,7 +76,36 @@ describe("create", () => {
   })
 })
 
-describe("findOne", () => {
+suite("count", () => {
+  test("returns the number of total rows in the table", async () => {
+    const expected = 11
+
+    await randomUsers.createAndFlushMany(expected)
+
+    const actual = await adapter.count({model: "user"})
+
+    expect(actual).toBe(expected)
+  })
+
+  test("supports where clauses", async () => {
+    const [, , user3, , user5] = await randomUsers.createAndFlushMany(10)
+
+    const actual = await adapter.count({
+      model: "user",
+      where: [
+        {
+          operator: "in",
+          field: "id",
+          value: [user3.id, user5.id]
+        }
+      ]
+    })
+
+    expect(actual).toBe(2)
+  })
+})
+
+suite("findOne", () => {
   test("by id", async () => {
     const expected = await randomUsers.createAndFlushOne()
     const actual = await adapter.findOne<DatabaseUser>({
@@ -138,7 +167,7 @@ describe("findOne", () => {
   })
 })
 
-describe("findMany", () => {
+suite("findMany", () => {
   test("returns all records", async () => {
     const users = await randomUsers.createAndFlushMany(10)
     const actual = await adapter.findMany<DatabaseUser>({
@@ -195,7 +224,7 @@ describe("findMany", () => {
     expect(actual.map(({id}) => id)).toEqual([user3.id, user2.id, user1.id])
   })
 
-  describe("operators", () => {
+  suite("operators", () => {
     test("in", async () => {
       const [user1, , user3] = await randomUsers.createAndFlushMany(3)
 
@@ -215,7 +244,7 @@ describe("findMany", () => {
   })
 })
 
-describe("errors", () => {
+suite("errors", () => {
   test("entity not found", async () => {
     try {
       await adapter.create({

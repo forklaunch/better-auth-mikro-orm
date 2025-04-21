@@ -44,8 +44,13 @@ export function mikroOrmAdapter(orm: MikroORM) {
       return normalizeOutput(metadata, entity, select) as any
     },
 
-    async count(): Promise<number> {
-      throw new Error("Not implemented yet, and not included in any release")
+    async count({model, where}): Promise<number> {
+      const metadata = getEntityMetadata(model)
+
+      return orm.em.count(
+        metadata.class,
+        normalizeWhereClauses(metadata, where)
+      )
     },
 
     async findOne({model, where, select}) {
