@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.3.0
+
+### Minor Changes
+
+- [#7](https://github.com/octet-stream/better-auth-mikro-orm/pull/7) [`4e59526`](https://github.com/octet-stream/better-auth-mikro-orm/commit/4e59526770fbcdd4c0fb57c9fcbee1838bdd2cd6) Thanks [@octet-stream](https://github.com/octet-stream)! - Implement count method for adapter
+
 ## 0.2.0
 
 ### Minor Changes
