@@ -1,5 +1,4 @@
 import type {FindOptions, MikroORM} from "@mikro-orm/core"
-import {generateId} from "better-auth"
 import {type AdapterDebugLogs, createAdapter} from "better-auth/adapters"
 import {dset} from "dset"
 
