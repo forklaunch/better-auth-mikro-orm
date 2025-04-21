@@ -1,7 +1,7 @@
 import {faker} from "@faker-js/faker"
 import type {MikroORM} from "@mikro-orm/better-sqlite"
 
-import type {UserInput} from "../types.js"
+import type {UserInput} from "../utils/types.js"
 
 import {User} from "./entities.js"
 
