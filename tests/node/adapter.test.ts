@@ -76,6 +76,35 @@ suite("create", () => {
   })
 })
 
+suite("count", () => {
+  test("returns the number of total rows in the table", async () => {
+    const expected = 11
+
+    await randomUsers.createAndFlushMany(expected)
+
+    const actual = await adapter.count({model: "user"})
+
+    expect(actual).toBe(expected)
+  })
+
+  test("supports where clauses", async () => {
+    const [, , user3, , user5] = await randomUsers.createAndFlushMany(10)
+
+    const actual = await adapter.count({
+      model: "user",
+      where: [
+        {
+          operator: "in",
+          field: "id",
+          value: [user3.id, user5.id]
+        }
+      ]
+    })
+
+    expect(actual).toBe(2)
+  })
+})
+
 suite("findOne", () => {
   test("by id", async () => {
     const expected = await randomUsers.createAndFlushOne()
