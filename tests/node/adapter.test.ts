@@ -58,7 +58,9 @@ suite("create", () => {
           }
         })({
           advanced: {
-            generateId: () => expected
+            database: {
+              generateId: () => expected
+            }
           }
         })
 
@@ -77,7 +79,9 @@ suite("create", () => {
           }
         })({
           advanced: {
-            generateId: false
+            database: {
+              generateId: false
+            }
           }
         })
 
@@ -98,7 +102,7 @@ suite("create", () => {
             isRunningAdapterTests: true
           }
         })({
-          database: {
+          advanced: {
             generateId: () => expected
           }
         })
@@ -117,7 +121,7 @@ suite("create", () => {
             isRunningAdapterTests: true
           }
         })({
-          database: {
+          advanced: {
             generateId: false
           }
         })

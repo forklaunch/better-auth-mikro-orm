@@ -63,15 +63,12 @@ export const mikroOrmAdapter = (
           const metadata = getEntityMetadata(model)
           const input = normalizeInput(metadata, data)
 
-          const genId =
-            options.database?.generateId ?? options.advanced?.generateId
-
-          if (genId === false) {
-            // Better Auth ignores this option by default, so this needs to be taken care of
+          // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
+          if (
+            options.advanced?.generateId === false &&
+            !options.advanced?.database
+          ) {
             Reflect.deleteProperty(input, "id")
-          } else {
-            input.id =
-              typeof genId === "function" ? genId({model}) : generateId()
           }
 
           const entity = orm.em.create(metadata.class, input)
