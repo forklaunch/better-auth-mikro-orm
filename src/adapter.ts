@@ -6,7 +6,24 @@ import {dset} from "dset"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
 
 export interface MikroOrmAdapterConfig {
+  /**
+   * Enable debug logs.
+   *
+   * @default false
+   */
   debugLogs?: AdapterDebugLogs
+
+  /**
+   * Indicates whether or not JSON is supported by target database.
+   *
+   * This option is enabled by default, because Mikro ORM supports JSON serialization/deserialization via [JsonType](https://mikro-orm.io/docs/custom-types#jsontype).
+   * See documentation for more info: https://mikro-orm.io/docs/json-properties
+   *
+   * If disabled, Better Auth will handle these transformations for you.
+   *
+   * @default true
+   */
+  supportsJSON?: boolean
 }
 
 /**
@@ -22,14 +39,14 @@ export interface MikroOrmAdapterConfig {
  */
 export const mikroOrmAdapter = (
   orm: MikroORM,
-  config?: MikroOrmAdapterConfig
+  {debugLogs, supportsJSON = true}: MikroOrmAdapterConfig = {}
 ) =>
   createAdapter({
     config: {
-      ...config,
-
-      adapterId: "mikro-orm",
-      adapterName: "Mikro ORM"
+      debugLogs,
+      supportsJSON,
+      adapterId: "mikro-orm-adapter",
+      adapterName: "Mikro ORM Adapter"
     },
 
     adapter({options}) {
@@ -47,9 +64,10 @@ export const mikroOrmAdapter = (
           const input = normalizeInput(metadata, data)
 
           const genId =
-            options.advanced?.generateId ?? options.database?.generateId
+            options.database?.generateId ?? options.advanced?.generateId
 
           if (genId === false) {
+            // Better Auth ignores this option by default, so this needs to be taken care of
             Reflect.deleteProperty(input, "id")
           } else {
             input.id =
