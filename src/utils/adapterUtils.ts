@@ -125,6 +125,14 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         return true
       }
 
+      if (
+        prop.kind === ReferenceKind.MANY_TO_MANY &&
+        (prop.name === fieldName ||
+          prop.fieldNames.includes(naming.propertyToColumnName(fieldName)))
+      ) {
+        return true
+      }
+
       return false
     })
 
@@ -150,6 +158,10 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
 
     if (prop.kind === ReferenceKind.MANY_TO_ONE) {
       return naming.joinColumnName(prop.name)
+    }
+
+    if (prop.kind === ReferenceKind.MANY_TO_MANY) {
+      return prop.name
     }
 
     createAdapterError(
@@ -206,8 +218,12 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   const normalizeInput: AdapterUtils["normalizeInput"] = (metadata, input) => {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
-      const path = getFieldPath(metadata, key)
-      dset(fields, path, value)
+      if (typeof value === "object" && value.$in) {
+        dset(fields, key, value.$in)
+      } else {
+        const path = getFieldPath(metadata, key)
+        dset(fields, path, value)
+      }
     })
 
     return fields
