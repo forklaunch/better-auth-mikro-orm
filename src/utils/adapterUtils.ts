@@ -166,11 +166,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   const getReferencedPropertyName = (
     metadata: EntityMetadata,
     prop: EntityProperty
-  ) =>
-    // naming.columnNameToProperty(
-    //   getReferencedColumnName(metadata.className, prop)
-    // )
-    getReferencedColumnName(metadata.className, prop)
+  ) => getReferencedColumnName(metadata.className, prop)
 
   const getFieldPath: AdapterUtils["getFieldPath"] = (
     metadata,
