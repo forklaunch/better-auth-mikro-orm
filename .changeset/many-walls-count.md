@@ -1,5 +1,5 @@
 ---
-"@fake-scope/fake-pkg": patch
+"better-auth-mikro-orm": patch
 ---
 
 fix(adapter): Support embedded references
