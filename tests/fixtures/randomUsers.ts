@@ -35,14 +35,7 @@ export function createRandomUsersUtils(orm: MikroORM): RandomUserUtils {
     const name = [firstName, lastName].join(" ")
     const email = faker.internet.email({firstName, lastName})
 
-    return {
-      email,
-      name,
-      address: {
-        street: faker.location.streetAddress(),
-        city: faker.location.city()
-      }
-    }
+    return {email, name}
   }
 
   const createMany: CreateManyUsers = (amount, cb) =>
