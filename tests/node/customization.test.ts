@@ -32,29 +32,57 @@ suite("custom entity (model) names", async () => {
   })
 })
 
-suite("custom field names", async () => {
-  const entities = await import("../fixtures/entities/custom-field-name.js")
-  const orm = createOrm({
-    entities: Object.values(entities)
-  })
+suite("custom field names", () => {
+  suite("camelCase", async () => {
+    const entities = await import("../fixtures/entities/custom-field-name.js")
+    const orm = createOrm({entities: Object.values(entities)})
 
-  const randomUsers = createRandomUsersUtils(orm)
-  const adapter = mikroOrmAdapter(orm)({
-    user: {
-      fields: {
-        email: "emailAddress" // TODO: Test snake_case
-      }
-    }
-  })
+    test("with camelCase", async () => {
+      const randomUsers = createRandomUsersUtils(orm)
+      const adapter = mikroOrmAdapter(orm)({
+        user: {
+          fields: {
+            email: "emailAddress"
+          }
+        }
+      })
 
-  test("creates a record", async () => {
-    const expected = randomUsers.createOne()
+      const expected = randomUsers.createOne()
 
-    const actual = await adapter.create<UserInput, DatabaseUser>({
-      model: "user",
-      data: expected
+      const actual = await adapter.create<UserInput, DatabaseUser>({
+        model: "user",
+        data: expected
+      })
+
+      expect(actual).toMatchObject(expected)
     })
+  })
 
-    expect(actual).toMatchObject(expected)
+  suite("snake_case", async () => {
+    const entities = await import(
+      "../fixtures/entities/custom-field-name-snake-case.js"
+    )
+
+    const orm = createOrm({entities: Object.values(entities)})
+
+    test("with sname_case", async () => {
+      const randomUsers = createRandomUsersUtils(orm)
+      const adapter = mikroOrmAdapter(orm)({
+        user: {
+          fields: {
+            email: "email_address"
+          }
+        }
+      })
+
+      const expected = randomUsers.createOne()
+
+      const actual = await adapter.create<UserInput, DatabaseUser>({
+        model: "user",
+        data: expected
+      })
+
+      expect(actual).toMatchObject(expected)
+    })
   })
 })
