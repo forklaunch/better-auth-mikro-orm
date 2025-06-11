@@ -3,7 +3,7 @@ import type {MikroORM} from "@mikro-orm/better-sqlite"
 
 import type {UserInput} from "../utils/types.js"
 
-import {User} from "./entities.js"
+import {User} from "./entities/defaults.js"
 
 type OnUserCreatedCallback = (user: UserInput, index: number) => UserInput
 
@@ -35,14 +35,7 @@ export function createRandomUsersUtils(orm: MikroORM): RandomUserUtils {
     const name = [firstName, lastName].join(" ")
     const email = faker.internet.email({firstName, lastName})
 
-    return {
-      email,
-      name,
-      address: {
-        street: faker.location.streetAddress(),
-        city: faker.location.city()
-      }
-    }
+    return {email, name}
   }
 
   const createMany: CreateManyUsers = (amount, cb) =>

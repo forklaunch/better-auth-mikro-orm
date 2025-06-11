@@ -153,7 +153,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     }
 
     if (prop.kind === ReferenceKind.MANY_TO_ONE) {
-      return naming.joinColumnName(prop.name)
+      return naming.columnNameToProperty(naming.joinColumnName(prop.name))
     }
 
     createAdapterError(
@@ -170,10 +170,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   const getReferencedPropertyName = (
     metadata: EntityMetadata,
     prop: EntityProperty
-  ) =>
-    naming.columnNameToProperty(
-      getReferencedColumnName(metadata.className, prop)
-    )
+  ) => getReferencedColumnName(metadata.className, prop)
 
   const getFieldPath: AdapterUtils["getFieldPath"] = (
     metadata,
