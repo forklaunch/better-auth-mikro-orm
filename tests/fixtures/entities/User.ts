@@ -1,6 +1,5 @@
 import {
   Collection,
-  Embeddable,
   Embedded,
   Entity,
   OneToMany,
@@ -10,6 +9,7 @@ import {
 } from "@mikro-orm/core"
 import type {User as DatabaseUser} from "better-auth"
 
+import {Address} from "./Address.js"
 import {Base} from "./Base.js"
 import {Session} from "./Session.js"
 
@@ -30,13 +30,4 @@ export class User extends Base implements DatabaseUser {
 
   @Embedded(() => Address, {object: true})
   address!: Address
-}
-
-@Embeddable()
-class Address {
-  @Property({type: "string"})
-  street!: string
-
-  @Property({type: "string"})
-  city!: string
 }
