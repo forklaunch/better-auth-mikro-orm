@@ -3,7 +3,7 @@ import type {MikroORM} from "@mikro-orm/better-sqlite"
 
 import type {UserInput} from "../utils/types.js"
 
-import {User} from "./entities.js"
+import {User} from "./entities/defaults.js"
 
 type OnUserCreatedCallback = (user: UserInput, index: number) => UserInput
 

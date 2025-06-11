@@ -1,17 +1,29 @@
 import {rm} from "node:fs/promises"
 import {join} from "node:path"
 
-import {MikroORM} from "@mikro-orm/better-sqlite"
+import {
+  type EntityClass,
+  type EntityClassGroup,
+  type EntitySchema,
+  MikroORM
+} from "@mikro-orm/better-sqlite"
+import {v7} from "uuid"
 import {afterAll, beforeAll, beforeEach} from "vitest"
 
-import * as entities from "./entities.js"
+interface CreateOrmParams {
+  entities: Array<
+    | EntityClass<Partial<any>>
+    | EntityClassGroup<Partial<any>>
+    | EntitySchema<Partial<any>>
+  >
+}
 
-export function createOrm(): MikroORM {
-  const dbName = join(import.meta.dirname, "test.sqlite")
+export function createOrm({entities}: CreateOrmParams): MikroORM {
+  const dbName = join(import.meta.dirname, `${v7()}.sqlite`)
 
   const orm = MikroORM.initSync({
     dbName,
-    entities: Object.values(entities),
+    entities: entities,
     ensureDatabase: true,
     allowGlobalContext: true
   })

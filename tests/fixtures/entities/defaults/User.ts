@@ -8,7 +8,7 @@ import {
 } from "@mikro-orm/core"
 import type {User as DatabaseUser} from "better-auth"
 
-import {Base} from "./Base.js"
+import {Base} from "../shared/Base.js"
 import {Session} from "./Session.js"
 
 @Entity()

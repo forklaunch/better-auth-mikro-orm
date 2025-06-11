@@ -12,7 +12,9 @@ import {createOrm} from "../fixtures/orm.js"
 import {createRandomUsersUtils} from "../fixtures/randomUsers.js"
 import type {SessionInput, UserInput} from "../utils/types.js"
 
-const orm = createOrm()
+import * as entities from "../fixtures/entities/defaults.js"
+
+const orm = createOrm({entities: Object.values(entities)})
 
 const randomUsers = createRandomUsersUtils(orm)
 
