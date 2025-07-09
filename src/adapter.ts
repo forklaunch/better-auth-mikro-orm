@@ -160,7 +160,11 @@ export const mikroOrmAdapter = (
 
           const entity = await orm.em.findOne(
             metadata.class,
-            normalizeWhereClauses(metadata, where)
+            normalizeWhereClauses(metadata, where),
+
+            {
+              fields: ["id"]
+            }
           )
 
           if (entity) {
@@ -171,14 +175,19 @@ export const mikroOrmAdapter = (
         async deleteMany({model, where}) {
           const metadata = getEntityMetadata(model)
 
-          const affected = await orm.em.nativeDelete(
+          const [rows, count] = await orm.em.findAndCount(
             metadata.class,
-            normalizeWhereClauses(metadata, where)
+
+            normalizeWhereClauses(metadata, where),
+
+            {
+              fields: ["id"]
+            }
           )
 
-          orm.em.clear() // This clears the IdentityMap
+          await orm.em.removeAndFlush(rows)
 
-          return affected
+          return count
         }
       }
     }

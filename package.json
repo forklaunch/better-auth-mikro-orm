@@ -43,15 +43,14 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "lib"
-  ],
+  "files": ["lib"],
   "scripts": {
     "build": "del-cli lib && tsup-node",
     "test": "vitest run",
     "test.watch": "vitest",
     "test.ui": "vitest --ui",
     "coverage": "vitest run --coverage",
+    "coverage.ui": "vitest --coverage --ui",
     "release": "pnpm build && changeset publish",
     "prepare": "npx --yes is-in-ci || husky"
   },
