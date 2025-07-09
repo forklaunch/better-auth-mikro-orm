@@ -160,7 +160,11 @@ export const mikroOrmAdapter = (
 
           const entity = await orm.em.findOne(
             metadata.class,
-            normalizeWhereClauses(metadata, where)
+            normalizeWhereClauses(metadata, where),
+
+            {
+              fields: ["id"]
+            }
           )
 
           if (entity) {
