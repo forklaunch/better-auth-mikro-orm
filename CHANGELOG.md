@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.4.1
+
+### Patch Changes
+
+- [#16](https://github.com/octet-stream/better-auth-mikro-orm/pull/16) [`f385105`](https://github.com/octet-stream/better-auth-mikro-orm/commit/f385105778ab10f511aa5315bf6b8890dfbb573a) Thanks [@octet-stream](https://github.com/octet-stream)! - Replace `nativeDelete` with `remove` method to delete rows to properly update IdentityMap in `adapter.deleteMany` method.
+
 ## 0.4.0
 
 ### Minor Changes
