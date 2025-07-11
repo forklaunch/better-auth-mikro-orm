@@ -1,5 +1,6 @@
 import {
   Collection,
+  Embedded,
   Entity,
   OneToMany,
   type Opt,
@@ -8,7 +9,8 @@ import {
 } from "@mikro-orm/core"
 import type {User as DatabaseUser} from "better-auth"
 
-import {Base} from "./Base.js"
+import {Base} from "../shared/Base.js"
+import {Address} from "./Address.js"
 import {Session} from "./Session.js"
 
 @Entity()
@@ -25,4 +27,7 @@ export class User extends Base implements DatabaseUser {
 
   @OneToMany(() => Session, "user")
   sessions = new Collection<Session, this>(this)
+
+  @Embedded(() => Address, {object: true, nullable: true})
+  address?: Address
 }

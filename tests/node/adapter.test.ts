@@ -12,11 +12,17 @@ import {createOrm} from "../fixtures/orm.js"
 import {createRandomUsersUtils} from "../fixtures/randomUsers.js"
 import type {SessionInput, UserInput} from "../utils/types.js"
 
-const orm = createOrm()
+import * as entities from "../fixtures/entities/defaults.js"
+
+const orm = createOrm({entities: Object.values(entities)})
 
 const randomUsers = createRandomUsersUtils(orm)
 
-const adapter = mikroOrmAdapter(orm)()
+const adapter = mikroOrmAdapter(orm, {
+  debugLogs: {
+    isRunningAdapterTests: true
+  }
+})({})
 
 suite("create", () => {
   test("a new record", async () => {
@@ -44,35 +50,92 @@ suite("create", () => {
     expect(actual.userId).toBe(user.id)
   })
 
-  test("custom generateId function", async () => {
-    const expected = "451"
-    const adapter = mikroOrmAdapter(orm)({
-      advanced: {
-        generateId: () => expected
-      }
+  suite("generateId", () => {
+    suite("via database.generateId option", () => {
+      test("custom generator", async () => {
+        const expected = "451"
+        const adapter = mikroOrmAdapter(orm, {
+          debugLogs: {
+            isRunningAdapterTests: true
+          }
+        })({
+          advanced: {
+            database: {
+              generateId: () => expected
+            }
+          }
+        })
+
+        const actual = await adapter.create<UserInput, DatabaseUser>({
+          model: "user",
+          data: randomUsers.createOne()
+        })
+
+        expect(actual.id).toBe(expected)
+      })
+
+      test("disabled (managed by orm or db)", async () => {
+        const adapter = mikroOrmAdapter(orm, {
+          debugLogs: {
+            isRunningAdapterTests: true
+          }
+        })({
+          advanced: {
+            database: {
+              generateId: false
+            }
+          }
+        })
+
+        const actual = await adapter.create<UserInput, DatabaseUser>({
+          model: "user",
+          data: randomUsers.createOne()
+        })
+
+        expect(validate(actual.id)).toBe(true)
+      })
     })
 
-    const actual = await adapter.create<UserInput, DatabaseUser>({
-      model: "user",
-      data: randomUsers.createOne()
+    suite("via legacy advanced.generateId option", () => {
+      test("custom generator", async () => {
+        const expected = "451"
+        const adapter = mikroOrmAdapter(orm, {
+          debugLogs: {
+            isRunningAdapterTests: true
+          }
+        })({
+          advanced: {
+            generateId: () => expected
+          }
+        })
+
+        const actual = await adapter.create<UserInput, DatabaseUser>({
+          model: "user",
+          data: randomUsers.createOne()
+        })
+
+        expect(actual.id).toBe(expected)
+      })
+
+      test("disabled (managed by orm or db)", async () => {
+        const adapter = mikroOrmAdapter(orm, {
+          debugLogs: {
+            isRunningAdapterTests: true
+          }
+        })({
+          advanced: {
+            generateId: false
+          }
+        })
+
+        const actual = await adapter.create<UserInput, DatabaseUser>({
+          model: "user",
+          data: randomUsers.createOne()
+        })
+
+        expect(validate(actual.id)).toBe(true)
+      })
     })
-
-    expect(actual.id).toBe(expected)
-  })
-
-  test("id can be managed by the orm", async () => {
-    const adapter = mikroOrmAdapter(orm)({
-      advanced: {
-        generateId: false
-      }
-    })
-
-    const actual = await adapter.create<UserInput, DatabaseUser>({
-      model: "user",
-      data: randomUsers.createOne()
-    })
-
-    expect(validate(actual.id)).toBe(true)
   })
 })
 
@@ -244,20 +307,68 @@ suite("findMany", () => {
   })
 })
 
-suite("errors", () => {
-  test("entity not found", async () => {
-    try {
-      await adapter.create({
-        model: "unknown",
-        data: {}
-      })
-    } catch (error) {
-      const actual = error as BetterAuthError
+suite("deleteMany", () => {
+  test("deletes multiple rows", async () => {
+    const users = await randomUsers.createAndFlushMany(3)
+    const ids = users.map(({id}) => id)
 
-      expect(actual).toBeInstanceOf(BetterAuthError)
-      expect(actual.message).toBe(
-        '[Mikro ORM Adapter] Cannot find metadata for "Unknown" entity. Make sure it defined and listed in your Mikro ORM config.'
-      )
-    }
+    const actual = await adapter.deleteMany({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          operator: "in",
+          value: ids
+        }
+      ]
+    })
+
+    expect(actual).toBe(users.length)
+
+    const matchedRowsCountPromise = orm.em.count(entities.User, {
+      id: {
+        $in: ids
+      }
+    })
+
+    await expect(matchedRowsCountPromise).resolves.toBe(0)
+  })
+})
+
+suite("issues", () => {
+  suite("deleteMany", () => {
+    // https://github.com/octet-stream/better-auth-mikro-orm/issues/15
+    test("does not clear IdentityMap (issue #15)", async () => {
+      const user = await randomUsers.createAndFlushOne()
+
+      const session = orm.em.create(entities.Session, {
+        token: generateId(),
+        user,
+        expiresAt: new Date()
+      })
+
+      await orm.em.flush()
+
+      await adapter.deleteMany({
+        model: "session",
+        where: [
+          {
+            field: "id",
+            value: session.id
+          }
+        ]
+      })
+
+      const promise = adapter.create<SessionInput, DatabaseSession>({
+        model: "session",
+        data: {
+          token: generateId(),
+          userId: user.id,
+          expiresAt: new Date()
+        }
+      })
+
+      await expect(promise).resolves.not.toThrow()
+    })
   })
 })

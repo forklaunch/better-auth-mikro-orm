@@ -1,5 +1,23 @@
 # better-auth-mikro-orm
 
+## 0.4.1
+
+### Patch Changes
+
+- [#16](https://github.com/octet-stream/better-auth-mikro-orm/pull/16) [`f385105`](https://github.com/octet-stream/better-auth-mikro-orm/commit/f385105778ab10f511aa5315bf6b8890dfbb573a) Thanks [@octet-stream](https://github.com/octet-stream)! - Replace `nativeDelete` with `remove` method to delete rows to properly update IdentityMap in `adapter.deleteMany` method.
+
+## 0.4.0
+
+### Minor Changes
+
+- [#9](https://github.com/octet-stream/better-auth-mikro-orm/pull/9) [`2fbe35a`](https://github.com/octet-stream/better-auth-mikro-orm/commit/2fbe35a86d2881debdd3f94d78474438c3023150) Thanks [@octet-stream](https://github.com/octet-stream)! - Support fields and models naming customization
+
+- [#9](https://github.com/octet-stream/better-auth-mikro-orm/pull/9) [`2fbe35a`](https://github.com/octet-stream/better-auth-mikro-orm/commit/2fbe35a86d2881debdd3f94d78474438c3023150) Thanks [@octet-stream](https://github.com/octet-stream)! - Support better-auth createAdapter utility
+
+### Patch Changes
+
+- [#12](https://github.com/octet-stream/better-auth-mikro-orm/pull/12) [`bb39133`](https://github.com/octet-stream/better-auth-mikro-orm/commit/bb39133dd25e16fe9608effe72ff8015c2a15a36) Thanks [@cjroebuck](https://github.com/cjroebuck)! - fix(adapter): Support embedded references
+
 ## 0.3.0
 
 ### Minor Changes
