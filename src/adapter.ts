@@ -64,7 +64,8 @@ export const mikroOrmAdapter = (
 
           // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
           if (
-            options.advanced?.generateId === false &&
+            (options.advanced?.generateId === false ||
+              options.advanced?.database?.generateId === false) &&
             !options.advanced?.database
           ) {
             Reflect.deleteProperty(input, "id")
@@ -72,7 +73,12 @@ export const mikroOrmAdapter = (
 
           const entity = orm.em.create(metadata.class, input)
 
-          await orm.em.persistAndFlush(entity)
+          try {
+            await orm.em.persistAndFlush(entity)
+          } catch (error) {
+            await orm.em.removeAndFlush(entity)
+            throw error
+          }
 
           return normalizeOutput(metadata, entity, select) as any
         },
@@ -136,7 +142,13 @@ export const mikroOrmAdapter = (
           }
 
           orm.em.assign(entity, normalizeInput(metadata, update as any))
-          await orm.em.flush()
+
+          try {
+            await orm.em.flush()
+          } catch (error) {
+            await orm.em.removeAndFlush(entity)
+            throw error
+          }
 
           return normalizeOutput(metadata, entity) as any
         },

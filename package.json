@@ -2,7 +2,7 @@
   "private": false,
   "type": "module",
   "name": "@forklaunch/better-auth-mikro-orm-fork",
-  "version": "0.4.1",
+  "version": "0.4.21",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
     "auth",
@@ -13,7 +13,7 @@
     "better-auth-adapter",
     "mikro-orm"
   ],
-  "author": "Forklift Technologies, Inc.",
+  "author": "Nick K., Forklift Technologies, Inc.",
   "license": "MIT",
   "repository": {
     "type": "git",
