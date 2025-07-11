@@ -136,6 +136,7 @@ export const mikroOrmAdapter = (
           }
 
           orm.em.assign(entity, normalizeInput(metadata, update as any))
+
           await orm.em.flush()
 
           return normalizeOutput(metadata, entity) as any
@@ -144,15 +145,23 @@ export const mikroOrmAdapter = (
         async updateMany({model, where, update}) {
           const metadata = getEntityMetadata(model)
 
-          const affected = await orm.em.nativeUpdate(
+          const rows = await orm.em.find(
             metadata.class,
+
             normalizeWhereClauses(metadata, where),
-            normalizeInput(metadata, update)
+
+            {
+              fields: ["id"]
+            }
           )
 
-          orm.em.clear()
+          rows.forEach(entity =>
+            orm.em.assign(entity, normalizeInput(metadata, update as any))
+          )
 
-          return affected
+          await orm.em.flush()
+
+          return rows.length
         },
 
         async delete({model, where}) {
@@ -160,6 +169,7 @@ export const mikroOrmAdapter = (
 
           const entity = await orm.em.findOne(
             metadata.class,
+
             normalizeWhereClauses(metadata, where),
 
             {

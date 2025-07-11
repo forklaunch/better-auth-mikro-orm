@@ -307,9 +307,74 @@ suite("findMany", () => {
   })
 })
 
+suite("updateMany", () => {
+  test("updates matched rows", async () => {
+    const [user1, user2, user3] = await randomUsers.createAndFlushMany(3)
+
+    const actual = await adapter.updateMany({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          operator: "in",
+          value: [user1.id, user3.id]
+        }
+      ],
+
+      update: {
+        emailVerified: true
+      }
+    })
+
+    expect(actual).toBe(2)
+    expect([
+      user1.emailVerified,
+      user2.emailVerified,
+      user3.emailVerified
+    ]).toMatchObject([true, false, true])
+  })
+
+  test("does not clear Identity Map", async () => {
+    const user = await randomUsers.createAndFlushOne()
+
+    const session = orm.em.create(entities.Session, {
+      token: generateId(),
+      user,
+      expiresAt: new Date()
+    })
+
+    await orm.em.flush()
+
+    await adapter.updateMany({
+      model: "session",
+      where: [
+        {
+          field: "id",
+          value: session.id
+        }
+      ],
+      update: {
+        token: generateId()
+      }
+    })
+
+    const promise = adapter.create<SessionInput, DatabaseSession>({
+      model: "session",
+      data: {
+        token: generateId(),
+        userId: user.id,
+        expiresAt: new Date()
+      }
+    })
+
+    await expect(promise).resolves.not.toThrow()
+  })
+})
+
 suite("deleteMany", () => {
   test("deletes multiple rows", async () => {
     const users = await randomUsers.createAndFlushMany(3)
+
     const ids = users.map(({id}) => id)
 
     const actual = await adapter.deleteMany({
@@ -333,9 +398,7 @@ suite("deleteMany", () => {
 
     await expect(matchedRowsCountPromise).resolves.toBe(0)
   })
-})
 
-suite("issues", () => {
   suite("deleteMany", () => {
     // https://github.com/octet-stream/better-auth-mikro-orm/issues/15
     test("does not clear IdentityMap (issue #15)", async () => {
