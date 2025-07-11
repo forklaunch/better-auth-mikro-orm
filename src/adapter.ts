@@ -64,9 +64,9 @@ export const mikroOrmAdapter = (
 
           // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
           if (
-            (options.advanced?.generateId === false ||
-              options.advanced?.database?.generateId === false) &&
-            !options.advanced?.database
+            (options.advanced?.generateId === false &&
+              !options.advanced?.database) ||
+            options.advanced?.database?.generateId === false
           ) {
             Reflect.deleteProperty(input, "id")
           }
