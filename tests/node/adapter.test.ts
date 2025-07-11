@@ -2,7 +2,7 @@ import type {
   Session as DatabaseSession,
   User as DatabaseUser
 } from "better-auth"
-import {BetterAuthError, generateId} from "better-auth"
+import {generateId} from "better-auth"
 import {validate} from "uuid"
 import {expect, suite, test} from "vitest"
 
