@@ -50,6 +50,24 @@ suite("create", () => {
     expect(actual.userId).toBe(user.id)
   })
 
+  // https://github.com/octet-stream/better-auth-mikro-orm/issues/18
+  test("with referenced value not presented in Identity Map (issue #18)", async () => {
+    const user = await randomUsers.createAndFlushOne()
+
+    orm.em.clear()
+
+    const actual = await adapter.create<SessionInput, DatabaseSession>({
+      model: "session",
+      data: {
+        token: generateId(),
+        userId: user.id,
+        expiresAt: new Date()
+      }
+    })
+
+    expect(actual.userId).toBe(user.id)
+  })
+
   suite("generateId", () => {
     suite("via database.generateId option", () => {
       test("custom generator", async () => {
