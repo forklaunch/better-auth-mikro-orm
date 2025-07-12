@@ -329,7 +329,7 @@ suite("updateMany", () => {
   test("updates matched rows", async () => {
     const [user1, user2, user3] = await randomUsers.createAndFlushMany(3)
 
-    const actual = await adapter.updateMany({
+    const affected = await adapter.updateMany({
       model: "user",
       where: [
         {
@@ -344,12 +344,17 @@ suite("updateMany", () => {
       }
     })
 
-    expect(actual).toBe(2)
-    expect([
-      user1.emailVerified,
-      user2.emailVerified,
-      user3.emailVerified
-    ]).toMatchObject([true, false, true])
+    expect(affected).toBe(2)
+
+    const users = await orm.em.find(entities.User, {
+      id: {$in: [user1.id, user2.id, user3.id]}
+    })
+
+    expect(users.map(({emailVerified}) => emailVerified)).toMatchObject([
+      true,
+      false,
+      true
+    ])
   })
 
   test("does not clear Identity Map", async () => {
