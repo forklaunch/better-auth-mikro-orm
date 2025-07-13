@@ -5,22 +5,20 @@ on:
     branches: [main]
     paths:
       - "**.ts"
-      - "**.tsx"
       - "*.config.ts"
       - "tsconfig.json"
       - "package.json"
       - "pnpm-lock.yaml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/ci.yaml"
   pull_request:
     branches: [main]
     paths:
       - "**.ts"
-      - "**.tsx"
       - "*.config.ts"
       - "tsconfig.json"
       - "package.json"
       - "pnpm-lock.yaml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/ci.yaml"
 
 jobs:
   ci:
