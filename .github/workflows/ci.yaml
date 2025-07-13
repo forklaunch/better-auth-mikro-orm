@@ -60,4 +60,9 @@ jobs:
         run: pnpm i --frozen-lockfile --prefer-offline
 
       - name: Run tests
-        run: pnpm vitest run
+        run: pnpm coverage
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
