@@ -63,7 +63,7 @@ jobs:
         run: pnpm coverage
 
       - name: Upload coverage report
-        if: matrix.node == '22.x' && matrix.os == 'ubuntu-latest'
+        if: matrix.node == '22.x'
         uses: codecov/codecov-action@v5
         with:
           token: ${{secrets.CODECOV_TOKEN}}
