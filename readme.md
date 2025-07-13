@@ -2,6 +2,10 @@
 
 [Mikro ORM](https://mikro-orm.io/) adapter for [Better Auth](https://www.better-auth.com/)
 
+
+[![CI](https://github.com/octet-stream/better-auth-mikro-orm/actions/workflows/ci.yaml/badge.svg)](https://github.com/octet-stream/better-auth-mikro-orm/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/octet-stream/better-auth-mikro-orm/graph/badge.svg?token=xcVndkC8mL)](https://codecov.io/gh/octet-stream/better-auth-mikro-orm)
+
 ## Installation
 
 pnpm:
