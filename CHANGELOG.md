@@ -1,5 +1,15 @@
 # better-auth-mikro-orm
 
+## 0.4.2
+
+### Patch Changes
+
+- [#23](https://github.com/octet-stream/better-auth-mikro-orm/pull/23) [`1407666`](https://github.com/octet-stream/better-auth-mikro-orm/commit/1407666c313b687c7877dea0a4e0168f5e5b48df) Thanks [@octet-stream](https://github.com/octet-stream)! - Use `nativeDelete` and `nativeUpdate` ORM methods for `updateMany`/`deleteMany`. However, this change mean that Identity Map won't be updated after `deleteMany` and `updateMany` methods.
+
+- [#20](https://github.com/octet-stream/better-auth-mikro-orm/pull/20) [`31f3fb1`](https://github.com/octet-stream/better-auth-mikro-orm/commit/31f3fb1c376c59f2ad83cc327e52fd35afb75af2) Thanks [@octet-stream](https://github.com/octet-stream)! - Remove `orm.em.clear` usage from `adapter.updateMany`
+
+- [#22](https://github.com/octet-stream/better-auth-mikro-orm/pull/22) [`fe209dc`](https://github.com/octet-stream/better-auth-mikro-orm/commit/fe209dc013d2ec789215bda77ef48e7e887687d1) Thanks [@octet-stream](https://github.com/octet-stream)! - Use `getReference` to ensure references loaded correctly
+
 ## 0.4.1
 
 ### Patch Changes
