@@ -3,7 +3,7 @@ import type {
   User as DatabaseUser
 } from "better-auth"
 import {generateId} from "better-auth"
-import {validate} from "uuid"
+import {NIL, validate} from "uuid"
 import {expect, suite, test} from "vitest"
 
 import {mikroOrmAdapter} from "../../src/index.js"
@@ -325,6 +325,63 @@ suite("findMany", () => {
   })
 })
 
+suite("update", () => {
+  test("updates matched row", async () => {
+    const user = await randomUsers.createAndFlushOne()
+
+    const actual = await adapter.update<DatabaseUser>({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          value: user.id
+        }
+      ],
+      update: {
+        emailVerified: true
+      }
+    })
+
+    expect(actual?.emailVerified).toBe(true)
+  })
+
+  test("returns null when no row found", async () => {
+    const actual = await adapter.update<DatabaseUser>({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          value: NIL
+        }
+      ],
+      update: {
+        emailVerified: true
+      }
+    })
+
+    expect(actual).toBe(null)
+  })
+
+  test("updates Identity Map", async () => {
+    const user = await randomUsers.createAndFlushOne()
+
+    await adapter.update<DatabaseUser>({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          value: user.id
+        }
+      ],
+      update: {
+        emailVerified: true
+      }
+    })
+
+    expect(user.emailVerified).toBe(true)
+  })
+})
+
 suite("updateMany", () => {
   test("updates matched rows", async () => {
     const [user1, user2, user3] = await randomUsers.createAndFlushMany(3)
@@ -391,6 +448,26 @@ suite("updateMany", () => {
     })
 
     await expect(promise).resolves.not.toThrow()
+  })
+})
+
+suite("delete", () => {
+  test("removes matched row", async () => {
+    const user = await randomUsers.createAndFlushOne()
+
+    await adapter.delete({
+      model: "user",
+      where: [
+        {
+          field: "id",
+          value: user.id
+        }
+      ]
+    })
+
+    const promise = orm.em.findOne(entities.User, user.id)
+
+    await expect(promise).resolves.toBe(null)
   })
 })
 

@@ -70,6 +70,7 @@
     "@vitest/ui": "3.1.1",
     "better-auth": "1.2.9",
     "del-cli": "6.0.0",
+    "es-toolkit": "1.39.7",
     "husky": "9.1.7",
     "is-in-ci": "1.0.0",
     "tsup": "8.4.0",

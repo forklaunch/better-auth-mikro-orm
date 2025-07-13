@@ -11,6 +11,7 @@ import {v7} from "uuid"
 import {afterAll, beforeAll, beforeEach} from "vitest"
 
 interface CreateOrmParams {
+  refreshOnEachTest?: boolean
   entities: Array<
     | EntityClass<Partial<any>>
     | EntityClassGroup<Partial<any>>
@@ -18,7 +19,10 @@ interface CreateOrmParams {
   >
 }
 
-export function createOrm({entities}: CreateOrmParams): MikroORM {
+export function createOrm({
+  entities,
+  refreshOnEachTest = true
+}: CreateOrmParams): MikroORM {
   const dbName = join(import.meta.dirname, `${v7()}.sqlite`)
 
   const orm = MikroORM.initSync({
@@ -30,7 +34,11 @@ export function createOrm({entities}: CreateOrmParams): MikroORM {
 
   beforeAll(async () => await orm.connect())
 
-  beforeEach(async () => await orm.getSchemaGenerator().refreshDatabase())
+  if (refreshOnEachTest) {
+    beforeEach(async () => await orm.getSchemaGenerator().refreshDatabase())
+  } else {
+    beforeAll(async () => await orm.getSchemaGenerator().refreshDatabase())
+  }
 
   afterAll(async () => {
     await orm.close()
