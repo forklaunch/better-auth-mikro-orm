@@ -246,8 +246,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
 
   const normalizeOutput: AdapterUtils["normalizeOutput"] = (
     metadata,
-    output,
-    select
+    output
   ) => {
     output = serialize(output)
 
@@ -260,7 +259,6 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         ),
         value
       }))
-      .filter(({path}) => (select ? select.includes(path) : true))
       .forEach(({path, value}) => dset(result, path, value))
 
     return result
