@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.4.3
+
+### Patch Changes
+
+- [#24](https://github.com/octet-stream/better-auth-mikro-orm/pull/24) [`2fd766a`](https://github.com/octet-stream/better-auth-mikro-orm/commit/2fd766a48b297bd493f84e4f7d59e555afd9f893) Thanks [@octet-stream](https://github.com/octet-stream)! - Remove fields filtering from output normalization
+
 ## 0.4.2
 
 ### Patch Changes
