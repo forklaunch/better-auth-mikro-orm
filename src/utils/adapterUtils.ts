@@ -219,6 +219,31 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     )
   }
 
+  /**
+   * Normalizes property's raw input value: if property is a reference,
+   * then it wraps value using [`orm.em.getReference`](https://mikro-orm.io/docs/entity-manager#entity-references) method,
+   * to unsure it's correctly persisted.
+   *
+   * Otherwise the value is returned as is.
+   *
+   * @param property - Metadata of the property
+   * @param value - Raw input value
+   */
+  const normalizePropertyValue = (
+    property: EntityProperty,
+    value: unknown
+  ): unknown => {
+    if (
+      !property.targetMeta ||
+      property.kind === ReferenceKind.SCALAR ||
+      property.kind === ReferenceKind.EMBEDDED
+    ) {
+      return value
+    }
+
+    return orm.em.getReference(property.targetMeta.class, value)
+  }
+
   const normalizeInput: AdapterUtils["normalizeInput"] = (metadata, input) => {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
@@ -235,8 +260,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
 
   const normalizeOutput: AdapterUtils["normalizeOutput"] = (
     metadata,
-    output,
-    select
+    output
   ) => {
     output = serialize(output)
 
@@ -249,7 +273,6 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         ),
         value
       }))
-      .filter(({path}) => (select ? select.includes(path) : true))
       .forEach(({path, value}) => dset(result, path, value))
 
     return result

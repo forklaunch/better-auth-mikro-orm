@@ -2,7 +2,7 @@
   "private": false,
   "type": "module",
   "name": "@forklaunch/better-auth-mikro-orm-fork",
-  "version": "0.4.102",
+  "version": "0.4.103",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
     "auth",
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git+ssh://git@github.com/octet-stream/better-auth-mikro-orm.git"
   },
-  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
+  "packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6",
   "engines": {
     "node": ">= 18"
   },
@@ -70,6 +70,7 @@
     "@vitest/ui": "3.1.1",
     "better-auth": "1.2.9",
     "del-cli": "6.0.0",
+    "es-toolkit": "1.39.7",
     "husky": "9.1.7",
     "is-in-ci": "1.0.0",
     "tsup": "8.4.0",

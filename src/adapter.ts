@@ -156,15 +156,11 @@ export const mikroOrmAdapter = (
         async updateMany({model, where, update}) {
           const metadata = getEntityMetadata(model)
 
-          const affected = await orm.em.nativeUpdate(
+          return orm.em.nativeUpdate(
             metadata.class,
             normalizeWhereClauses(metadata, where),
-            normalizeInput(metadata, update)
+            normalizeInput(metadata, update as any)
           )
-
-          orm.em.clear()
-
-          return affected
         },
 
         async delete({model, where}) {
@@ -172,6 +168,7 @@ export const mikroOrmAdapter = (
 
           const entity = await orm.em.findOne(
             metadata.class,
+
             normalizeWhereClauses(metadata, where),
 
             {
@@ -187,19 +184,10 @@ export const mikroOrmAdapter = (
         async deleteMany({model, where}) {
           const metadata = getEntityMetadata(model)
 
-          const [rows, count] = await orm.em.findAndCount(
+          return orm.em.nativeDelete(
             metadata.class,
-
-            normalizeWhereClauses(metadata, where),
-
-            {
-              fields: ["id"]
-            }
+            normalizeWhereClauses(metadata, where)
           )
-
-          await orm.em.removeAndFlush(rows)
-
-          return count
         }
       }
     }
