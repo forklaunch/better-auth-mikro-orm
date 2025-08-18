@@ -8,15 +8,16 @@
 
 ## Installation
 
-Use the package manager of your choice:
+Using npm:
 ```sh
-# Using npm
 npm i better-auth-mikro-orm
-
-# Using yarn
+```
+Using yarn:
+```sh
 yarn add better-auth-mikro-orm
-
-# Using pnpm
+```
+Using pnpm:
+```sh
 pnpm add better-auth-mikro-orm
 ```
 
@@ -38,9 +39,9 @@ export const auth = betterAuth({
   // Don't forget to disable the ID generator if it is already managed by MikroORM
   advanced: {
     database: {
-      generateId: false,
-    },
-  },
+      generateId: false
+    }
+  }
 })
 ```
 
