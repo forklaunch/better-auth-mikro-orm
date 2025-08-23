@@ -1,8 +1,8 @@
 import type {
   Session as DatabaseSession,
   User as DatabaseUser
-} from "better-auth"
-import {generateId} from "better-auth"
+} from "@forklaunch/better-auth"
+import {generateId} from "@forklaunch/better-auth"
 import {NIL, validate} from "uuid"
 import {expect, suite, test} from "vitest"
 

@@ -1,5 +1,8 @@
+import {
+  type AdapterDebugLogs,
+  createAdapter
+} from "@forklaunch/better-auth/adapters"
 import type {FindOptions, MikroORM} from "@mikro-orm/core"
-import {type AdapterDebugLogs, createAdapter} from "better-auth/adapters"
 import {dset} from "dset"
 
 import {createAdapterUtils} from "./utils/adapterUtils.js"

@@ -1,6 +1,6 @@
+import type {Where} from "@forklaunch/better-auth"
 import type {EntityMetadata, EntityProperty, MikroORM} from "@mikro-orm/core"
 import {ReferenceKind, serialize} from "@mikro-orm/core"
-import type {Where} from "better-auth"
 import {dset} from "dset"
 
 import {createAdapterError} from "./createAdapterError.js"
