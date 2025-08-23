@@ -1,5 +1,5 @@
+import type {User as DatabaseUser} from "@forklaunch/better-auth"
 import {Entity, type Opt, Property, Unique} from "@mikro-orm/core"
-import type {User as DatabaseUser} from "better-auth"
 
 import {Base} from "../shared/Base.js"
 

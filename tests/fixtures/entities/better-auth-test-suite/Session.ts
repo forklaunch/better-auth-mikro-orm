@@ -1,5 +1,5 @@
+import type {Session as DatabaseSession} from "@forklaunch/better-auth"
 import {Entity, ManyToOne, Property, Unique} from "@mikro-orm/core"
-import type {Session as DatabaseSession} from "better-auth"
 
 import {Base} from "../shared/Base.js"
 import {User} from "./User.js"

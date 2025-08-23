@@ -1,4 +1,4 @@
-import {BetterAuthError} from "better-auth"
+import {BetterAuthError} from "@forklaunch/better-auth"
 
 /**
  * Creates and throws BetterAuthError prefixed with the adapter's name

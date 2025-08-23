@@ -1,3 +1,4 @@
+import type {User as DatabaseUser} from "@forklaunch/better-auth"
 import {
   Collection,
   Embedded,
@@ -7,7 +8,6 @@ import {
   Property,
   Unique
 } from "@mikro-orm/core"
-import type {User as DatabaseUser} from "better-auth"
 
 import {Base} from "../shared/Base.js"
 import {Address} from "./Address.js"

@@ -2,7 +2,7 @@
   "private": false,
   "type": "module",
   "name": "@forklaunch/better-auth-mikro-orm-fork",
-  "version": "0.4.103",
+  "version": "0.4.104",
   "description": "Mikro ORM Adapter for Better Auth",
   "keywords": [
     "auth",
