@@ -1,6 +1,6 @@
-import type {Where} from "@forklaunch/better-auth"
 import type {EntityMetadata, EntityProperty, MikroORM} from "@mikro-orm/core"
 import {ReferenceKind, serialize} from "@mikro-orm/core"
+import type {Where} from "better-auth"
 import {dset} from "dset"
 
 import {createAdapterError} from "./createAdapterError.js"
@@ -248,10 +248,13 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
       if (typeof value === "object" && value.$in) {
-        dset(fields, key, value.$in)
+        const property = getPropertyMetadata(metadata, key)
+        dset(fields, [property.name], value.$in)
       } else {
-        const path = getFieldPath(metadata, key)
-        dset(fields, path, value)
+        const property = getPropertyMetadata(metadata, key)
+        const normalizedValue = normalizePropertyValue(property, value)
+
+        dset(fields, [property.name], normalizedValue)
       }
     })
 
@@ -341,6 +344,8 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
       switch (w.operator) {
         case "in":
           return createWhereInClause(w.field, path, w.value)
+        case "not_in":
+          return createWhereClause(path, w.value, "$nin")
         case "contains":
           return createWhereClause(path, `%${w.value}%`, "$like")
         case "starts_with":
@@ -376,7 +381,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     where
       .filter(({connector}) => connector === "OR")
       .forEach(({field, value}, index) => {
-        const path = ["$and", index].concat(getFieldPath(metadata, field, true))
+        const path = ["$or", index].concat(getFieldPath(metadata, field, true))
 
         return createWhereClause(path, value, "eq", result)
       })

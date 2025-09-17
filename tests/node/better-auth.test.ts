@@ -1,5 +1,5 @@
-import type {BetterAuthOptions} from "@forklaunch/better-auth"
-import {runAdapterTest} from "@forklaunch/better-auth/adapters/test"
+import type {BetterAuthOptions} from "better-auth"
+import {runAdapterTest} from "better-auth/adapters/test"
 import {toMerged} from "es-toolkit"
 import {suite} from "vitest"
 
@@ -36,7 +36,8 @@ suite("better-auth tests", async () => {
       const adapter = mikroOrmAdapter(orm, {
         debugLogs: {
           isRunningAdapterTests: true
-        }
+        },
+        options: toMerged(baseOptions, customOptions)
       })
 
       return adapter(toMerged(baseOptions, customOptions))

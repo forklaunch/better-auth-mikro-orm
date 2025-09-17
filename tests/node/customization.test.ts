@@ -1,6 +1,6 @@
 import {expect, suite, test} from "vitest"
 
-import type {User as DatabaseUser} from "@forklaunch/better-auth"
+import type {User as DatabaseUser} from "better-auth"
 
 import {mikroOrmAdapter} from "../../src/adapter.js"
 import {createOrm} from "../fixtures/orm.js"

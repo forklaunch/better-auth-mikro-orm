@@ -32,8 +32,8 @@ pnpm add better-auth-mikro-orm
 2. When you're finished with the schema definitions, you can simply pass the result of the `mikroOrmAdapter` call to the `database` option like this:
 
 ```ts
-import { mikroOrmAdapter } from "@forklaunch/better-auth-mikro-orm";
-import { betterAuth } from "@forklaunch/better-auth";
+import { mikroOrmAdapter } from "better-auth-mikro-orm";
+import { betterAuth } from "better-auth";
 
 import { orm } from "./orm.js"; // Your Mikro ORM instance
 

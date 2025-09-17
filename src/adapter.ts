@@ -1,10 +1,16 @@
+import {type FindOptions, IsolationLevel, type MikroORM} from "@mikro-orm/core"
 import {
   type AdapterDebugLogs,
-  createAdapter
-} from "@forklaunch/better-auth/adapters"
-import type {FindOptions, MikroORM} from "@mikro-orm/core"
+  type AdapterFactoryCustomizeAdapterCreator,
+  createAdapterFactory
+} from "better-auth/adapters"
 import {dset} from "dset"
 
+import type {
+  Adapter,
+  AdapterInstance,
+  BetterAuthOptions
+} from "better-auth/types"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
 
 export interface MikroOrmAdapterConfig {
@@ -26,7 +32,158 @@ export interface MikroOrmAdapterConfig {
    * @default true
    */
   supportsJSON?: boolean
+
+  /**
+   * Options for the Better Auth adapter.
+   */
+  options?: BetterAuthOptions
 }
+
+const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
+  orm =>
+  ({options}) => {
+    const {
+      getEntityMetadata,
+      getFieldPath,
+      normalizeInput,
+      normalizeOutput,
+      normalizeWhereClauses
+    } = createAdapterUtils(orm)
+
+    return {
+      async create({model, data, select}) {
+        const metadata = getEntityMetadata(model)
+        const input = normalizeInput(metadata, data)
+
+        // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
+        if (
+          (options.advanced?.generateId === false &&
+            !options.advanced?.database) ||
+          options.advanced?.database?.generateId === false
+        ) {
+          Reflect.deleteProperty(input, "id")
+        }
+
+        const entity = orm.em.create(metadata.class, input)
+
+        try {
+          await orm.em.persistAndFlush(entity)
+        } catch (error) {
+          await orm.em.removeAndFlush(entity)
+          throw error
+        }
+
+        return normalizeOutput(metadata, entity, select) as any
+      },
+
+      async count({model, where}): Promise<number> {
+        const metadata = getEntityMetadata(model)
+
+        return orm.em.count(
+          metadata.class,
+          normalizeWhereClauses(metadata, where)
+        )
+      },
+
+      async findOne({model, where, select}) {
+        const metadata = getEntityMetadata(model)
+
+        const entity = await orm.em.findOne(
+          metadata.class,
+          normalizeWhereClauses(metadata, where)
+        )
+
+        if (!entity) {
+          return null
+        }
+
+        return normalizeOutput(metadata, entity, select) as any
+      },
+
+      async findMany({model, where, limit, offset, sortBy}) {
+        const metadata = getEntityMetadata(model)
+
+        const options: FindOptions<any> = {
+          limit,
+          offset
+        }
+
+        if (sortBy) {
+          const path = getFieldPath(metadata, sortBy.field)
+          dset(options, ["orderBy", ...path], sortBy.direction)
+        }
+
+        const rows = await orm.em.find(
+          metadata.class,
+          normalizeWhereClauses(metadata, where),
+          options
+        )
+
+        return rows.map(row => normalizeOutput(metadata, row)) as any
+      },
+
+      async update({model, where, update}) {
+        const metadata = getEntityMetadata(model)
+
+        const entity = await orm.em.findOne(
+          metadata.class,
+          normalizeWhereClauses(metadata, where)
+        )
+
+        if (!entity) {
+          return null
+        }
+
+        orm.em.assign(entity, normalizeInput(metadata, update as any))
+
+        try {
+          await orm.em.flush()
+        } catch (error) {
+          await orm.em.removeAndFlush(entity)
+          throw error
+        }
+
+        return normalizeOutput(metadata, entity) as any
+      },
+
+      async updateMany({model, where, update}) {
+        const metadata = getEntityMetadata(model)
+
+        return orm.em.nativeUpdate(
+          metadata.class,
+          normalizeWhereClauses(metadata, where),
+          normalizeInput(metadata, update as any)
+        )
+      },
+
+      async delete({model, where}) {
+        const metadata = getEntityMetadata(model)
+
+        const entity = await orm.em.findOne(
+          metadata.class,
+
+          normalizeWhereClauses(metadata, where),
+
+          {
+            fields: ["id"]
+          }
+        )
+
+        if (entity) {
+          await orm.em.removeAndFlush(entity)
+        }
+      },
+
+      async deleteMany({model, where}) {
+        const metadata = getEntityMetadata(model)
+
+        return orm.em.nativeDelete(
+          metadata.class,
+          normalizeWhereClauses(metadata, where)
+        )
+      }
+    }
+  }
 
 /**
  * Creates Mikro ORM adapter for Better Auth.
@@ -41,157 +198,29 @@ export interface MikroOrmAdapterConfig {
  */
 export const mikroOrmAdapter = (
   orm: MikroORM,
-  {debugLogs, supportsJSON = true}: MikroOrmAdapterConfig = {}
+  {debugLogs, supportsJSON = true, options}: MikroOrmAdapterConfig = {}
 ) =>
-  createAdapter({
+  createAdapterFactory({
+    adapter: adapter(orm),
     config: {
       debugLogs,
       supportsJSON,
       adapterId: "mikro-orm-adapter",
-      adapterName: "Mikro ORM Adapter"
-    },
-
-    adapter({options}) {
-      const {
-        getEntityMetadata,
-        getFieldPath,
-        normalizeInput,
-        normalizeOutput,
-        normalizeWhereClauses
-      } = createAdapterUtils(orm)
-
-      return {
-        async create({model, data, select}) {
-          const metadata = getEntityMetadata(model)
-          const input = normalizeInput(metadata, data)
-
-          // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
-          if (
-            (options.advanced?.generateId === false &&
-              !options.advanced?.database) ||
-            options.advanced?.database?.generateId === false
-          ) {
-            Reflect.deleteProperty(input, "id")
-          }
-
-          const entity = orm.em.create(metadata.class, input)
-
-          try {
-            await orm.em.persistAndFlush(entity)
-          } catch (error) {
-            await orm.em.removeAndFlush(entity)
-            throw error
-          }
-
-          return normalizeOutput(metadata, entity, select) as any
-        },
-
-        async count({model, where}): Promise<number> {
-          const metadata = getEntityMetadata(model)
-
-          return orm.em.count(
-            metadata.class,
-            normalizeWhereClauses(metadata, where)
+      adapterName: "Mikro ORM Adapter",
+      transaction: async cb => {
+        return orm.em.transactional(async () => {
+          return cb(
+            createAdapterFactory({
+              adapter: adapter(orm),
+              config: {
+                debugLogs,
+                supportsJSON,
+                adapterId: "mikro-orm-adapter-transaction",
+                adapterName: "Mikro ORM Adapter Transaction"
+              }
+            })(options ?? {})
           )
-        },
-
-        async findOne({model, where, select}) {
-          const metadata = getEntityMetadata(model)
-
-          const entity = await orm.em.findOne(
-            metadata.class,
-            normalizeWhereClauses(metadata, where)
-          )
-
-          if (!entity) {
-            return null
-          }
-
-          return normalizeOutput(metadata, entity, select) as any
-        },
-
-        async findMany({model, where, limit, offset, sortBy}) {
-          const metadata = getEntityMetadata(model)
-
-          const options: FindOptions<any> = {
-            limit,
-            offset
-          }
-
-          if (sortBy) {
-            const path = getFieldPath(metadata, sortBy.field)
-            dset(options, ["orderBy", ...path], sortBy.direction)
-          }
-
-          const rows = await orm.em.find(
-            metadata.class,
-            normalizeWhereClauses(metadata, where),
-            options
-          )
-
-          return rows.map(row => normalizeOutput(metadata, row)) as any
-        },
-
-        async update({model, where, update}) {
-          const metadata = getEntityMetadata(model)
-
-          const entity = await orm.em.findOne(
-            metadata.class,
-            normalizeWhereClauses(metadata, where)
-          )
-
-          if (!entity) {
-            return null
-          }
-
-          orm.em.assign(entity, normalizeInput(metadata, update as any))
-
-          try {
-            await orm.em.flush()
-          } catch (error) {
-            await orm.em.removeAndFlush(entity)
-            throw error
-          }
-
-          return normalizeOutput(metadata, entity) as any
-        },
-
-        async updateMany({model, where, update}) {
-          const metadata = getEntityMetadata(model)
-
-          return orm.em.nativeUpdate(
-            metadata.class,
-            normalizeWhereClauses(metadata, where),
-            normalizeInput(metadata, update as any)
-          )
-        },
-
-        async delete({model, where}) {
-          const metadata = getEntityMetadata(model)
-
-          const entity = await orm.em.findOne(
-            metadata.class,
-
-            normalizeWhereClauses(metadata, where),
-
-            {
-              fields: ["id"]
-            }
-          )
-
-          if (entity) {
-            await orm.em.removeAndFlush(entity)
-          }
-        },
-
-        async deleteMany({model, where}) {
-          const metadata = getEntityMetadata(model)
-
-          return orm.em.nativeDelete(
-            metadata.class,
-            normalizeWhereClauses(metadata, where)
-          )
-        }
+        })
       }
     }
   })
