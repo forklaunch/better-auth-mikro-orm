@@ -1,24 +1,19 @@
-import {Entity, ManyToOne, Property, Unique} from "@mikro-orm/core"
-import type {Session as DatabaseSession} from "better-auth"
+import {defineEntity, p} from "@mikro-orm/core"
 
-import {Base} from "../shared/Base.js"
+import {BaseProperties} from "../shared/Base.js"
 import {User} from "./User.js"
 
-@Entity()
-export class Session extends Base implements Omit<DatabaseSession, "userId"> {
-  @Property({type: "string"})
-  @Unique()
-  token!: string
+const SessionSchema = defineEntity({
+  name: "Session",
+  properties: {
+    ...BaseProperties,
+    token: p.string().unique(),
+    expiresAt: p.datetime(),
+    ipAddress: p.string().nullable().default(null),
+    userAgent: p.string().nullable().default(null),
+    user: () => p.manyToOne(User)
+  }
+})
 
-  @Property({type: Date})
-  expiresAt!: Date
-
-  @Property({type: "string", nullable: true, default: null})
-  ipAddress?: string | null | undefined
-
-  @Property({type: "string", nullable: true, default: null})
-  userAgent?: string | null | undefined
-
-  @ManyToOne(() => User)
-  user!: User
-}
+export class Session extends SessionSchema.class {}
+SessionSchema.setClass(Session)

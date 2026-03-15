@@ -97,13 +97,16 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   ) => {
     entityName = normalizeEntityName(entityName)
 
-    if (!metadata.has(entityName)) {
-      createAdapterError(
-        `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
-      )
+    const allMetadata = metadata.getAll()
+    for (const meta of allMetadata.values()) {
+      if (meta.className === entityName) {
+        return meta
+      }
     }
 
-    return metadata.get(entityName)
+    createAdapterError(
+      `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
+    )
   }
 
   /**

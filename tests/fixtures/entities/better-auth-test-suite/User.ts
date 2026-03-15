@@ -1,35 +1,21 @@
-import {
-  Collection,
-  Embedded,
-  Entity,
-  OneToMany,
-  type Opt,
-  Property,
-  Unique
-} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/core"
 
-import {Base} from "../shared/Base.js"
+import {BaseProperties} from "../shared/Base.js"
 import {Address} from "./Address.js"
 import {Sessions} from "./Session.js"
 
-@Entity()
-export class User extends Base {
-  @Property({type: "string"})
-  @Unique()
-  email_address!: string
+const UserSchema = defineEntity({
+  name: "User",
+  properties: {
+    ...BaseProperties,
+    email_address: p.string().unique(),
+    emailVerified: p.boolean().default(false),
+    test: p.string().nullable(),
+    name: p.string(),
+    sessions: () => p.oneToMany(Sessions).mappedBy(s => s.user),
+    address: () => p.embedded(Address).object().nullable()
+  }
+})
 
-  @Property({type: "boolean"})
-  emailVerified: Opt<boolean> = false
-
-  @Property({type: "string", nullable: true})
-  test?: string
-
-  @Property({type: "string"})
-  name!: string
-
-  @OneToMany(() => Sessions, "user")
-  sessions = new Collection<Sessions, this>(this)
-
-  @Embedded(() => Address, {object: true, nullable: true})
-  address?: Address
-}
+export class User extends UserSchema.class {}
+UserSchema.setClass(User)

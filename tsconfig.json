@@ -8,11 +8,10 @@
     "strict": true,
     "skipLibCheck": true,
     "target": "esnext",
-    "module": "node16",
-    "moduleResolution": "node16",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "moduleDetection": "force",
     "verbatimModuleSyntax": true,
-    "experimentalDecorators": true,
     "allowJs": false
   }
 }

@@ -67,9 +67,9 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         const entity = orm.em.create(metadata.class, input)
 
         try {
-          await orm.em.persistAndFlush(entity)
+          await orm.em.persist(entity).flush()
         } catch (error) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
           throw error
         }
 
@@ -139,7 +139,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         try {
           await orm.em.flush()
         } catch (error) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
           throw error
         }
 
@@ -170,7 +170,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         )
 
         if (entity) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
         }
       },
 
@@ -193,7 +193,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
  *   * No complex primary key support
  *   * No schema generation
  *
- * @param orm - Instance of Mikro ORM returned from `MikroORM.init` or `MikroORM.initSync` methods
+ * @param orm - Instance of Mikro ORM returned from `MikroORM.init` or `new MikroORM` constructor
  * @param config - Additional configuration for Mikro ORM adapter
  */
 export const mikroOrmAdapter = (

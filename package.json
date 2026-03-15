@@ -21,7 +21,7 @@
   },
   "packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6",
   "engines": {
-    "node": ">= 18"
+    "node": ">= 22.17"
   },
   "types": "./lib/adapter.d.cts",
   "main": "./lib/adapter.cjs",
@@ -62,8 +62,8 @@
     "@commitlint/config-conventional": "19.8.0",
     "@commitlint/types": "19.8.0",
     "@faker-js/faker": "9.7.0",
-    "@mikro-orm/better-sqlite": "6.4.13",
-    "@mikro-orm/core": "6.4.13",
+    "@mikro-orm/core": "7.0.2",
+    "@mikro-orm/sqlite": "7.0.2",
     "@types/node": "22.14.1",
     "@types/uuid": "10.0.0",
     "@vitest/coverage-v8": "3.1.1",
@@ -82,7 +82,7 @@
     "dset": "3.1.4"
   },
   "peerDependencies": {
-    "@mikro-orm/core": "^6.0.0",
+    "@mikro-orm/core": "^7.0.0",
     "better-auth": "^1.0.0"
   }
 }
