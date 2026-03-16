@@ -1,33 +1,20 @@
-import {
-  Collection,
-  Embedded,
-  Entity,
-  OneToMany,
-  type Opt,
-  Property,
-  Unique
-} from "@mikro-orm/core"
-import type {User as DatabaseUser} from "better-auth"
+import {defineEntity, p} from "@mikro-orm/core"
 
-import {Base} from "../shared/Base.js"
+import {BaseProperties} from "../shared/Base.js"
 import {Address} from "./Address.js"
 import {Session} from "./Session.js"
 
-@Entity()
-export class User extends Base implements DatabaseUser {
-  @Property({type: "string"})
-  @Unique()
-  email!: string
+const UserSchema = defineEntity({
+  name: "User",
+  properties: {
+    ...BaseProperties,
+    email: p.string().unique(),
+    emailVerified: p.boolean().default(false),
+    name: p.string(),
+    sessions: () => p.oneToMany(Session).mappedBy(s => s.user),
+    address: () => p.embedded(Address).object().nullable()
+  }
+})
 
-  @Property({type: "boolean"})
-  emailVerified: Opt<boolean> = false
-
-  @Property({type: "string"})
-  name!: string
-
-  @OneToMany(() => Session, "user")
-  sessions = new Collection<Session, this>(this)
-
-  @Embedded(() => Address, {object: true, nullable: true})
-  address?: Address
-}
+export class User extends UserSchema.class {}
+UserSchema.setClass(User)

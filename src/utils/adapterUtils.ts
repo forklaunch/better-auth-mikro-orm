@@ -97,13 +97,16 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   ) => {
     entityName = normalizeEntityName(entityName)
 
-    if (!metadata.has(entityName)) {
-      createAdapterError(
-        `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
-      )
+    const allMetadata = metadata.getAll()
+    for (const meta of allMetadata.values()) {
+      if (meta.className === entityName) {
+        return meta
+      }
     }
 
-    return metadata.get(entityName)
+    createAdapterError(
+      `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
+    )
   }
 
   /**
@@ -247,7 +250,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
   const normalizeInput: AdapterUtils["normalizeInput"] = (metadata, input) => {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
-      if (typeof value === "object" && value.$in) {
+      if (typeof value === "object" && value !== null && value.$in) {
         const property = getPropertyMetadata(metadata, key)
         dset(fields, [property.name], value.$in)
       } else {
@@ -276,7 +279,9 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         ),
         value
       }))
-      .forEach(({path, value}) => dset(result, path, value))
+      .forEach(({path, value}) => {
+        dset(result, path, value)
+      })
 
     return result
   }
@@ -372,10 +377,10 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
         const path = ["$and", index].concat(getFieldPath(metadata, field, true))
 
         if (operator === "in") {
-          return createWhereInClause(field, path, value, result)
+          createWhereInClause(field, path, value, result)
+        } else {
+          createWhereClause(path, value, "eq", result)
         }
-
-        return createWhereClause(path, value, "eq", result)
       })
 
     where
@@ -383,7 +388,7 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
       .forEach(({field, value}, index) => {
         const path = ["$or", index].concat(getFieldPath(metadata, field, true))
 
-        return createWhereClause(path, value, "eq", result)
+        createWhereClause(path, value, "eq", result)
       })
 
     return result

@@ -1,3 +1,5 @@
-export {Sessions} from "./better-auth-test-suite/Session.js"
+export {Account} from "./better-auth-test-suite/Account.js"
 export {Address} from "./better-auth-test-suite/Address.js"
+export {Sessions} from "./better-auth-test-suite/Session.js"
 export {User} from "./better-auth-test-suite/User.js"
+export {Verification} from "./better-auth-test-suite/Verification.js"

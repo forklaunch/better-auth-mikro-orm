@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm list:*)",
+      "Bash(find node_modules -path *@better-auth/test-utils* -name *.d.mts)",
+      "Bash(npm view:*)",
+      "Bash(pnpm add:*)",
+      "Bash(grep -r \"normalTestSuite\\\\|export.*Suite\\\\|export.*suite\" node_modules/@better-auth/test-utils/dist/ --include=*.mjs --include=*.d.mts)",
+      "Bash(grep -r \"normalTestSuite\\\\|normal.*[Ss]uite\\\\|Normal\" node_modules/@better-auth/test-utils/ --include=*.mjs)",
+      "Bash(grep -r normalTestSuite node_modules/ --include=*.mjs --include=*.d.mts --include=*.js --include=*.d.ts)",
+      "Bash(npx @biomejs/biome migrate)",
+      "Bash(npx @biomejs/biome migrate --write)"
+    ]
+  }
+}

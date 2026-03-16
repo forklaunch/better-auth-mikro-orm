@@ -1,17 +1,16 @@
-import {Entity, type Opt, Property, Unique} from "@mikro-orm/core"
-import type {User as DatabaseUser} from "better-auth"
+import {defineEntity, p} from "@mikro-orm/core"
 
-import {Base} from "../shared/Base.js"
+import {BaseProperties} from "../shared/Base.js"
 
-@Entity()
-export class CustomUser extends Base implements DatabaseUser {
-  @Property({type: "string"})
-  @Unique()
-  email!: string
+const CustomUserSchema = defineEntity({
+  name: "CustomUser",
+  properties: {
+    ...BaseProperties,
+    email: p.string().unique(),
+    emailVerified: p.boolean().default(false),
+    name: p.string()
+  }
+})
 
-  @Property({type: "boolean"})
-  emailVerified: Opt<boolean> = false
-
-  @Property({type: "string"})
-  name!: string
-}
+export class CustomUser extends CustomUserSchema.class {}
+CustomUserSchema.setClass(CustomUser)

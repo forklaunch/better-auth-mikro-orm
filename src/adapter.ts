@@ -1,16 +1,10 @@
-import {type FindOptions, IsolationLevel, type MikroORM} from "@mikro-orm/core"
+import type {FindOptions, MikroORM} from "@mikro-orm/core"
 import {
-  type AdapterDebugLogs,
   type AdapterFactoryCustomizeAdapterCreator,
   createAdapterFactory
 } from "better-auth/adapters"
+import type {BetterAuthOptions} from "better-auth/types"
 import {dset} from "dset"
-
-import type {
-  Adapter,
-  AdapterInstance,
-  BetterAuthOptions
-} from "better-auth/types"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
 
 export interface MikroOrmAdapterConfig {
@@ -19,7 +13,10 @@ export interface MikroOrmAdapterConfig {
    *
    * @default false
    */
-  debugLogs?: AdapterDebugLogs
+  debugLogs?:
+    | boolean
+    | {isRunningAdapterTests: boolean}
+    | {logCondition?: () => boolean}
 
   /**
    * Indicates whether or not JSON is supported by target database.
@@ -56,20 +53,16 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         const input = normalizeInput(metadata, data)
 
         // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
-        if (
-          (options.advanced?.generateId === false &&
-            !options.advanced?.database) ||
-          options.advanced?.database?.generateId === false
-        ) {
+        if (options.advanced?.database?.generateId === false) {
           Reflect.deleteProperty(input, "id")
         }
 
         const entity = orm.em.create(metadata.class, input)
 
         try {
-          await orm.em.persistAndFlush(entity)
+          await orm.em.persist(entity).flush()
         } catch (error) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
           throw error
         }
 
@@ -139,7 +132,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         try {
           await orm.em.flush()
         } catch (error) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
           throw error
         }
 
@@ -170,7 +163,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         )
 
         if (entity) {
-          await orm.em.removeAndFlush(entity)
+          await orm.em.remove(entity).flush()
         }
       },
 
@@ -193,7 +186,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
  *   * No complex primary key support
  *   * No schema generation
  *
- * @param orm - Instance of Mikro ORM returned from `MikroORM.init` or `MikroORM.initSync` methods
+ * @param orm - Instance of Mikro ORM returned from `MikroORM.init` or `new MikroORM` constructor
  * @param config - Additional configuration for Mikro ORM adapter
  */
 export const mikroOrmAdapter = (

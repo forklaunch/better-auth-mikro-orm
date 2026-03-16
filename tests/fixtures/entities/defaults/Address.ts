@@ -1,10 +1,13 @@
-import {Embeddable, Property} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/core"
 
-@Embeddable()
-export class Address {
-  @Property({type: "string"})
-  street!: string
+const AddressSchema = defineEntity({
+  name: "Address",
+  embeddable: true,
+  properties: {
+    street: p.string(),
+    city: p.string()
+  }
+})
 
-  @Property({type: "string"})
-  city!: string
-}
+export class Address extends AddressSchema.class {}
+AddressSchema.setClass(Address)

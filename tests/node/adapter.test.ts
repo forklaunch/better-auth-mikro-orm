@@ -7,12 +7,10 @@ import {NIL, validate} from "uuid"
 import {expect, suite, test} from "vitest"
 
 import {mikroOrmAdapter} from "../../src/index.js"
-
+import * as entities from "../fixtures/entities/defaults.js"
 import {createOrm} from "../fixtures/orm.js"
 import {createRandomUsersUtils} from "../fixtures/randomUsers.js"
 import type {SessionInput, UserInput} from "../utils/types.js"
-
-import * as entities from "../fixtures/entities/defaults.js"
 
 const orm = createOrm({entities: Object.values(entities)})
 
@@ -123,7 +121,9 @@ suite("create", () => {
           }
         })({
           advanced: {
-            generateId: () => expected
+            database: {
+              generateId: () => expected
+            }
           }
         })
 
@@ -142,7 +142,9 @@ suite("create", () => {
           }
         })({
           advanced: {
-            generateId: false
+            database: {
+              generateId: false
+            }
           }
         })
 
