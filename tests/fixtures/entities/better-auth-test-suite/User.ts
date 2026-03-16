@@ -12,6 +12,7 @@ const UserSchema = defineEntity({
     emailVerified: p.boolean().default(false),
     test: p.string().nullable(),
     name: p.string(),
+    image: p.string().nullable().default(null),
     sessions: () => p.oneToMany(Sessions).mappedBy(s => s.user),
     address: () => p.embedded(Address).object().nullable()
   }

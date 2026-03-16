@@ -1,16 +1,10 @@
-import {type FindOptions, IsolationLevel, type MikroORM} from "@mikro-orm/core"
+import type {FindOptions, MikroORM} from "@mikro-orm/core"
 import {
-  type AdapterDebugLogs,
   type AdapterFactoryCustomizeAdapterCreator,
   createAdapterFactory
 } from "better-auth/adapters"
+import type {BetterAuthOptions} from "better-auth/types"
 import {dset} from "dset"
-
-import type {
-  Adapter,
-  AdapterInstance,
-  BetterAuthOptions
-} from "better-auth/types"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
 
 export interface MikroOrmAdapterConfig {
@@ -19,7 +13,10 @@ export interface MikroOrmAdapterConfig {
    *
    * @default false
    */
-  debugLogs?: AdapterDebugLogs
+  debugLogs?:
+    | boolean
+    | {isRunningAdapterTests: boolean}
+    | {logCondition?: () => boolean}
 
   /**
    * Indicates whether or not JSON is supported by target database.
@@ -56,11 +53,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
         const input = normalizeInput(metadata, data)
 
         // Better Auth ignores `advanced.generateId` option when it's disabled, so this needs to be taken care of (for backwards compatibility)
-        if (
-          (options.advanced?.generateId === false &&
-            !options.advanced?.database) ||
-          options.advanced?.database?.generateId === false
-        ) {
+        if (options.advanced?.database?.generateId === false) {
           Reflect.deleteProperty(input, "id")
         }
 
