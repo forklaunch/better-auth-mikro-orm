@@ -268,10 +268,10 @@ export function createAdapterUtils(orm: MikroORM): AdapterUtils {
     metadata,
     output
   ) => {
-    output = serialize(output)
+    const serialized = serialize(output)
 
     const result: Record<string, any> = {}
-    Object.entries(output)
+    Object.entries(serialized)
       .map(([key, value]) => ({
         path: getReferencedPropertyName(
           metadata,
