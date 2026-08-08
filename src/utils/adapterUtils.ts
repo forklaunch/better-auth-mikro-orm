@@ -1,8 +1,9 @@
-import type {EntityMetadata, EntityProperty, MikroORM} from "@mikro-orm/core"
+import type {EntityMetadata, EntityProperty} from "@mikro-orm/core"
 import {ReferenceKind, serialize} from "@mikro-orm/core"
 import type {Where} from "better-auth"
 import {dset} from "dset"
 
+import type {AnyMikroOrm} from "./anyMikroOrm.js"
 import {createAdapterError} from "./createAdapterError.js"
 
 export interface AdapterUtils {
@@ -85,7 +86,7 @@ const ownReferences = [
  *
  * @param orm - Mikro ORM instance
  */
-export function createAdapterUtils(orm: MikroORM): AdapterUtils {
+export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
   const naming = orm.config.getNamingStrategy()
   const metadata = orm.getMetadata()
 

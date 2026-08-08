@@ -1,4 +1,4 @@
-import type {FindOptions, MikroORM} from "@mikro-orm/core"
+import type {FindOptions} from "@mikro-orm/core"
 import {
   type AdapterFactoryCustomizeAdapterCreator,
   createAdapterFactory
@@ -6,6 +6,9 @@ import {
 import type {BetterAuthOptions} from "better-auth/types"
 import {dset} from "dset"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
+import type {AnyMikroOrm} from "./utils/anyMikroOrm.js"
+
+export type {AnyMikroOrm} from "./utils/anyMikroOrm.js"
 
 export interface MikroOrmAdapterConfig {
   /**
@@ -36,7 +39,7 @@ export interface MikroOrmAdapterConfig {
   options?: BetterAuthOptions
 }
 
-const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
+const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
   orm =>
   ({options}) => {
     const {
@@ -190,7 +193,7 @@ const adapter: (orm: MikroORM) => AdapterFactoryCustomizeAdapterCreator =
  * @param config - Additional configuration for Mikro ORM adapter
  */
 export const mikroOrmAdapter = (
-  orm: MikroORM,
+  orm: AnyMikroOrm,
   {debugLogs, supportsJSON = true, options}: MikroOrmAdapterConfig = {}
 ) =>
   createAdapterFactory({

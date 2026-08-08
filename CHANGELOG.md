@@ -1,5 +1,15 @@
 # better-auth-mikro-orm
 
+## 0.5.4
+
+### Patch Changes
+
+- Accept MikroORM 7.1+ instances: the adapter's `orm` parameter is now typed
+  `AnyMikroOrm` (derived from `MikroORM.init`) instead of the bare `MikroORM`
+  class, whose mutable `Entities` default rejected the `readonly`-typed
+  instances `init` returns since MikroORM 7.1. `AnyMikroOrm` is exported for
+  consumers. Dev toolchain builds and tests against @mikro-orm/core 7.1.8.
+
 ## 0.4.3
 
 ### Patch Changes

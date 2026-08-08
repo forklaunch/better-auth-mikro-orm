@@ -14,7 +14,7 @@ importers:
     devDependencies:
       '@better-auth/test-utils':
         specifier: 1.5.5
-        version: 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0))(better-auth@1.5.5(better-sqlite3@12.8.0)(mongodb@7.1.0)(vitest@4.1.0))(vitest@4.1.0)
+        version: 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0))(better-auth@1.5.5(better-sqlite3@12.11.1)(mongodb@7.1.0)(vitest@4.1.0))(vitest@4.1.0)
       '@biomejs/biome':
         specifier: 2.4.7
         version: 2.4.7
@@ -37,11 +37,11 @@ importers:
         specifier: 10.3.0
         version: 10.3.0
       '@mikro-orm/core':
-        specifier: 7.0.2
-        version: 7.0.2
+        specifier: 7.1.8
+        version: 7.1.8
       '@mikro-orm/sqlite':
-        specifier: 7.0.2
-        version: 7.0.2(@mikro-orm/core@7.0.2)
+        specifier: 7.1.8
+        version: 7.1.8(@mikro-orm/core@7.1.8)
       '@types/node':
         specifier: 25.5.0
         version: 25.5.0
@@ -56,7 +56,7 @@ importers:
         version: 4.1.0(vitest@4.1.0)
       better-auth:
         specifier: 1.5.5
-        version: 1.5.5(better-sqlite3@12.8.0)(mongodb@7.1.0)(vitest@4.1.0)
+        version: 1.5.5(better-sqlite3@12.11.1)(mongodb@7.1.0)(vitest@4.1.0)
       del-cli:
         specifier: 7.0.0
         version: 7.0.0
@@ -580,8 +580,8 @@ packages:
   '@manypkg/get-packages@1.1.3':
     resolution: {integrity: sha512-fo+QhuU3qE/2TQMQmbVMqaQ6EWbMhi4ABWP+O4AM1NqPBuy0OrApV5LO6BrrgnhtAHS2NH6RrVk9OL181tTi8A==}
 
-  '@mikro-orm/core@7.0.2':
-    resolution: {integrity: sha512-OzbvkyPiJnQhLpdbWcYQPh41v1jmv1KKrtJm9Irf1H7e55Kk5W2fogy74OOPIQN2mWpBz7VP6iz+o/ncEX29PQ==}
+  '@mikro-orm/core@7.1.8':
+    resolution: {integrity: sha512-hX/869Heo+EEzLEnJsL/c17T4N0qJEn9E6ZQv58nRaV2yIKZGa9FJFnqRXgo5H8wv1ktieQLXcfARs1pcXZofw==}
     engines: {node: '>= 22.17.0'}
     peerDependencies:
       dataloader: 2.2.3
@@ -589,17 +589,17 @@ packages:
       dataloader:
         optional: true
 
-  '@mikro-orm/sql@7.0.2':
-    resolution: {integrity: sha512-qWCtHdjgvDYHIaJDvgY0uEu4O3hzlTJn6nrfyGxHC2d3VGbAdx8UNSq8icNmb40CO8IK4MjbwOssUqcaDLwStQ==}
+  '@mikro-orm/sql@7.1.8':
+    resolution: {integrity: sha512-hR4pbzlSdryniafc072ifs8PhIaksdSq2CZHABikEJadi40e+cEu3aXg32aHuXRje4epg5mCDmGwxDt4twxryA==}
     engines: {node: '>= 22.17.0'}
     peerDependencies:
-      '@mikro-orm/core': 7.0.2
+      '@mikro-orm/core': 7.1.8
 
-  '@mikro-orm/sqlite@7.0.2':
-    resolution: {integrity: sha512-wOskJG/ZVpvfKqzdYsewo/jpg+W+EYFMW7REG9Dnor1GLX+QDGQRm0KkdL8gl/OYFujwKrZUeMJRfmqXFr2tZw==}
+  '@mikro-orm/sqlite@7.1.8':
+    resolution: {integrity: sha512-8Mh2rjGMOydTSdSH2+eCqkJ9bfloIR8xC70mmA7WH4OFXSSBTP39CQB9oOLocd783v3fJ3iGfA1xpg4cn1HWaQ==}
     engines: {node: '>= 22.17.0'}
     peerDependencies:
-      '@mikro-orm/core': 7.0.2
+      '@mikro-orm/core': 7.1.8
 
   '@mongodb-js/saslprep@1.4.6':
     resolution: {integrity: sha512-y+x3H1xBZd38n10NZF/rEBlvDOOMQ6LKUTHqr8R9VkJ+mmQOYtJFxIlkkK8fZrtOiL6VixbOBWMbZGBdal3Z1g==}
@@ -1060,9 +1060,9 @@ packages:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
     engines: {node: '>=4'}
 
-  better-sqlite3@12.8.0:
-    resolution: {integrity: sha512-RxD2Vd96sQDjQr20kdP+F+dK/1OUNiVOl200vKBZY8u0vTwysfolF6Hq+3ZK2+h8My9YvZhHsF+RSGZW2VYrPQ==}
-    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
+  better-sqlite3@12.11.1:
+    resolution: {integrity: sha512-dq9AtApgg5PGFtBzPFSBl3HZQjHok5gaQCM6zh2Yk0aSmDCs1CbnVI8/HgASQkNKsWFpseIO9beg5xxpYhbIfA==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x || 26.x}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -1515,6 +1515,10 @@ packages:
   kysely@0.28.12:
     resolution: {integrity: sha512-kWiueDWXhbCchgiotwXkwdxZE/6h56IHAeFWg4euUfW0YsmO9sxbAxzx1KLLv2lox15EfuuxHQvgJ1qIfZuHGw==}
     engines: {node: '>=20.0.0'}
+
+  kysely@0.29.4:
+    resolution: {integrity: sha512-y5mVgQNkMbs1eK9Xyc0pmNdabN2wHhRYY/5r4W5HrUT1rYCEPeVNSj1RUJeSDKT3U0p+mXCvLgkrFuIafYI6BA==}
+    engines: {node: '>=22.0.0'}
 
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
@@ -2322,10 +2326,10 @@ snapshots:
       '@better-auth/utils': 0.3.1
       '@better-fetch/fetch': 1.1.21
 
-  '@better-auth/test-utils@1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0))(better-auth@1.5.5(better-sqlite3@12.8.0)(mongodb@7.1.0)(vitest@4.1.0))(vitest@4.1.0)':
+  '@better-auth/test-utils@1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0))(better-auth@1.5.5(better-sqlite3@12.11.1)(mongodb@7.1.0)(vitest@4.1.0))(vitest@4.1.0)':
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0)
-      better-auth: 1.5.5(better-sqlite3@12.8.0)(mongodb@7.1.0)(vitest@4.1.0)
+      better-auth: 1.5.5(better-sqlite3@12.11.1)(mongodb@7.1.0)(vitest@4.1.0)
       vitest: 4.1.0(@types/node@25.5.0)(@vitest/ui@4.1.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1))
 
   '@better-auth/utils@0.3.1': {}
@@ -2780,19 +2784,19 @@ snapshots:
       globby: 11.1.0
       read-yaml-file: 1.1.0
 
-  '@mikro-orm/core@7.0.2': {}
+  '@mikro-orm/core@7.1.8': {}
 
-  '@mikro-orm/sql@7.0.2(@mikro-orm/core@7.0.2)':
+  '@mikro-orm/sql@7.1.8(@mikro-orm/core@7.1.8)':
     dependencies:
-      '@mikro-orm/core': 7.0.2
-      kysely: 0.28.12
+      '@mikro-orm/core': 7.1.8
+      kysely: 0.29.4
 
-  '@mikro-orm/sqlite@7.0.2(@mikro-orm/core@7.0.2)':
+  '@mikro-orm/sqlite@7.1.8(@mikro-orm/core@7.1.8)':
     dependencies:
-      '@mikro-orm/core': 7.0.2
-      '@mikro-orm/sql': 7.0.2(@mikro-orm/core@7.0.2)
-      better-sqlite3: 12.8.0
-      kysely: 0.28.12
+      '@mikro-orm/core': 7.1.8
+      '@mikro-orm/sql': 7.1.8(@mikro-orm/core@7.1.8)
+      better-sqlite3: 12.11.1
+      kysely: 0.29.4
 
   '@mongodb-js/saslprep@1.4.6':
     dependencies:
@@ -3096,7 +3100,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  better-auth@1.5.5(better-sqlite3@12.8.0)(mongodb@7.1.0)(vitest@4.1.0):
+  better-auth@1.5.5(better-sqlite3@12.11.1)(mongodb@7.1.0)(vitest@4.1.0):
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0)
       '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.1)(kysely@0.28.12)(nanostores@1.2.0))(@better-auth/utils@0.3.1)
@@ -3116,7 +3120,7 @@ snapshots:
       nanostores: 1.2.0
       zod: 4.3.6
     optionalDependencies:
-      better-sqlite3: 12.8.0
+      better-sqlite3: 12.11.1
       mongodb: 7.1.0
       vitest: 4.1.0(@types/node@25.5.0)(@vitest/ui@4.1.0)(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1))
     transitivePeerDependencies:
@@ -3135,7 +3139,7 @@ snapshots:
     dependencies:
       is-windows: 1.0.2
 
-  better-sqlite3@12.8.0:
+  better-sqlite3@12.11.1:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3
@@ -3550,6 +3554,8 @@ snapshots:
       graceful-fs: 4.2.11
 
   kysely@0.28.12: {}
+
+  kysely@0.29.4: {}
 
   lightningcss-android-arm64@1.32.0:
     optional: true
