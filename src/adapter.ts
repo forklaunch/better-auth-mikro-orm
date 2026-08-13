@@ -195,8 +195,16 @@ const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
 export const mikroOrmAdapter = (
   orm: AnyMikroOrm,
   {debugLogs, supportsJSON = true, options}: MikroOrmAdapterConfig = {}
-) =>
-  createAdapterFactory({
+) => {
+  // Better Auth invokes the returned factory with the fully-resolved auth
+  // options (including plugin schemas). The transactional adapter must be
+  // built with those same options — building it with `{}` drops every
+  // plugin table from the schema, so any transactional write to a plugin
+  // model (e.g. the device-authorization claim) throws
+  // `Model "<name>" not found in schema`.
+  let resolvedOptions: BetterAuthOptions | undefined
+
+  const factory = createAdapterFactory({
     adapter: adapter(orm),
     config: {
       debugLogs,
@@ -214,9 +222,15 @@ export const mikroOrmAdapter = (
                 adapterId: "mikro-orm-adapter-transaction",
                 adapterName: "Mikro ORM Adapter Transaction"
               }
-            })(options ?? {})
+            })(options ?? resolvedOptions ?? {})
           )
         })
       }
     }
   })
+
+  return (betterAuthOptions: BetterAuthOptions) => {
+    resolvedOptions = betterAuthOptions
+    return factory(betterAuthOptions)
+  }
+}
