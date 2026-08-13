@@ -46,6 +46,16 @@ const adapter = mikroOrmAdapter(orm, {
   }
 })(betterAuthOptions)
 
+// Mirrors real-world configs that pass a partial `options` (no plugins) to
+// the adapter constructor — the resolved auth options must still win inside
+// transactions.
+const adapterWithPartialOptions = mikroOrmAdapter(orm, {
+  debugLogs: {
+    isRunningAdapterTests: true
+  },
+  options: {advanced: {database: {generateId: false}}} as never
+})(betterAuthOptions)
+
 suite("transaction", () => {
   test("resolves plugin-defined models inside a transaction", async () => {
     const created = await adapter.create<
@@ -60,6 +70,26 @@ suite("transaction", () => {
     // Better Auth options, so plugin models were missing from its schema and
     // this threw `Model "deviceCode" not found in schema`.
     const updated = await adapter.transaction(async trx =>
+      trx.update<{id: string; status: string}>({
+        model: "deviceCode",
+        where: [{field: "id", value: created.id}],
+        update: {status: "approved"}
+      })
+    )
+
+    expect(updated).toMatchObject({status: "approved"})
+  })
+
+  test("resolved options beat a partial constructor `options` config", async () => {
+    const created = await adapterWithPartialOptions.create<
+      {deviceCode: string; userCode: string; status: string},
+      {id: string; status: string}
+    >({
+      model: "deviceCode",
+      data: {deviceCode: "dc_456", userCode: "UC456789", status: "pending"}
+    })
+
+    const updated = await adapterWithPartialOptions.transaction(async trx =>
       trx.update<{id: string; status: string}>({
         model: "deviceCode",
         where: [{field: "id", value: created.id}],

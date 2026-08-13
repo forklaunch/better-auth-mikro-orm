@@ -222,7 +222,12 @@ export const mikroOrmAdapter = (
                 adapterId: "mikro-orm-adapter-transaction",
                 adapterName: "Mikro ORM Adapter Transaction"
               }
-            })(options ?? resolvedOptions ?? {})
+            })(
+              // Prefer the options Better Auth resolved the outer factory
+              // with — an explicit `options` config is typically partial
+              // (no plugin schemas) and must not shadow them.
+              resolvedOptions ?? options ?? {}
+            )
           )
         })
       }
