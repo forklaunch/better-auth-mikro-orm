@@ -1,10 +1,20 @@
 import type {EntityMetadata, EntityProperty} from "@mikro-orm/core"
 import {ReferenceKind, serialize} from "@mikro-orm/core"
 import type {Where} from "better-auth"
+import type {AdapterFactoryCustomizeAdapterCreator} from "better-auth/adapters"
 import {dset} from "dset"
+import type {AnyMikroOrm} from "./anyMikroOrm.ts"
 
-import type {AnyMikroOrm} from "./anyMikroOrm.js"
-import {createAdapterError} from "./createAdapterError.js"
+import {createAdapterError} from "./createAdapterError.ts"
+
+type AdapterFactoryCustomizeAdapterCreatorConfig =
+  Parameters<AdapterFactoryCustomizeAdapterCreator>[0]
+
+function checkForExhaustiveWhereOperator(op: never): never {
+  throw new RangeError(
+    `[Better Auth MikroORM adapter error] Unhandled WHERE operator detected: ${op}`
+  )
+}
 
 export interface AdapterUtils {
   /**
@@ -73,6 +83,8 @@ export interface AdapterUtils {
     metadata: EntityMetadata,
     where?: Where[]
   ): Record<string, any>
+
+  normalizeSelect(modelName: string, input?: string[]): string[] | undefined
 }
 
 const ownReferences = [
@@ -86,7 +98,10 @@ const ownReferences = [
  *
  * @param orm - Mikro ORM instance
  */
-export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
+export function createAdapterUtils(
+  orm: AnyMikroOrm,
+  config: AdapterFactoryCustomizeAdapterCreatorConfig
+): AdapterUtils {
   const naming = orm.config.getNamingStrategy()
   const metadata = orm.getMetadata()
 
@@ -96,18 +111,15 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
   const getEntityMetadata: AdapterUtils["getEntityMetadata"] = (
     entityName: string
   ) => {
-    entityName = normalizeEntityName(entityName)
+    const normalizedEntityName = normalizeEntityName(entityName)
 
-    const allMetadata = metadata.getAll()
-    for (const meta of allMetadata.values()) {
-      if (meta.className === entityName) {
-        return meta
-      }
+    if (!metadata.getByClassName(normalizedEntityName, false)) {
+      createAdapterError(
+        `Cannot find metadata for "${normalizedEntityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
+      )
     }
 
-    createAdapterError(
-      `Cannot find metadata for "${entityName}" entity. Make sure it defined and listed in your Mikro ORM config.`
-    )
+    return metadata.getByClassName(normalizedEntityName)
   }
 
   /**
@@ -127,14 +139,6 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
 
       if (
         prop.kind === ReferenceKind.MANY_TO_ONE &&
-        (prop.name === fieldName ||
-          prop.fieldNames.includes(naming.propertyToColumnName(fieldName)))
-      ) {
-        return true
-      }
-
-      if (
-        prop.kind === ReferenceKind.MANY_TO_MANY &&
         (prop.name === fieldName ||
           prop.fieldNames.includes(naming.propertyToColumnName(fieldName)))
       ) {
@@ -166,10 +170,6 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
 
     if (prop.kind === ReferenceKind.MANY_TO_ONE) {
       return naming.columnNameToProperty(naming.joinColumnName(prop.name))
-    }
-
-    if (prop.kind === ReferenceKind.MANY_TO_MANY) {
-      return prop.name
     }
 
     createAdapterError(
@@ -251,15 +251,10 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
   const normalizeInput: AdapterUtils["normalizeInput"] = (metadata, input) => {
     const fields: Record<string, any> = {}
     Object.entries(input).forEach(([key, value]) => {
-      if (typeof value === "object" && value !== null && value.$in) {
-        const property = getPropertyMetadata(metadata, key)
-        dset(fields, [property.name], value.$in)
-      } else {
-        const property = getPropertyMetadata(metadata, key)
-        const normalizedValue = normalizePropertyValue(property, value)
+      const property = getPropertyMetadata(metadata, key)
+      const normalizedValue = normalizePropertyValue(property, value)
 
-        dset(fields, [property.name], normalizedValue)
-      }
+      dset(fields, [property.name], normalizedValue)
     })
 
     return fields
@@ -267,12 +262,13 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
 
   const normalizeOutput: AdapterUtils["normalizeOutput"] = (
     metadata,
-    output
-  ) => {
-    const serialized = serialize(output)
+    output,
+    select
+  ): Record<string, any> => {
+    let result: Record<string, any> = {}
+    const serializedOutput = serialize(output)
 
-    const result: Record<string, any> = {}
-    Object.entries(serialized)
+    Object.entries(serializedOutput)
       .map(([key, value]) => ({
         path: getReferencedPropertyName(
           metadata,
@@ -283,6 +279,14 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
       .forEach(({path, value}) => {
         dset(result, path, value)
       })
+
+    // Filter out unnecessary fields
+    // TODO: Implement proper select on mikro-orm querying level
+    if (select) {
+      result = Object.fromEntries(
+        Object.entries(result).filter(([name]) => select.includes(name))
+      )
+    }
 
     return result
   }
@@ -319,15 +323,60 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
     fieldName: string,
     path: Array<string | number>,
     value: unknown,
+    operator: "in" | "nin",
     target?: Record<string, any>
   ): Record<string, any> {
+    const normalizedOperator = `$${operator}`
+
     if (!Array.isArray(value)) {
       createAdapterError(
-        `The value for the field "${fieldName}" must be an array when using the $in operator.`
+        `The value for the field "${fieldName}" must be an array when using the ${normalizedOperator} operator.`
       )
     }
 
-    return createWhereClause(path, value, "$in", target)
+    return createWhereClause(path, value, normalizedOperator, target)
+  }
+
+  function normalizeWhereClause(
+    path: Array<string | number>,
+    input: Where,
+    target?: Record<string, any>
+  ): Record<string, any> {
+    switch (input.operator) {
+      case "in":
+        return createWhereInClause(input.field, path, input.value, "in", target)
+      case "not_in":
+        return createWhereInClause(
+          input.field,
+          path,
+          input.value,
+          "nin",
+          target
+        )
+      case "contains":
+        return createWhereClause(path, `%${input.value}%`, "$like", target)
+      case "starts_with":
+        return createWhereClause(path, `${input.value}%`, "$like", target)
+      case "ends_with":
+        return createWhereClause(path, `%${input.value}`, "$like", target)
+      // The next 5 case statemets are _expected_ to fall through so we can simplify and reuse the same logic for these operators
+      case "gt":
+      case "gte":
+      case "lt":
+      case "lte":
+      case "ne":
+        return createWhereClause(
+          path,
+          input.value,
+          `$${input.operator}`,
+          target
+        )
+      case "eq":
+      case undefined:
+        return createWhereClause(path, input.value, "eq", target)
+      default:
+        return checkForExhaustiveWhereOperator(input.operator)
+    }
   }
 
   const normalizeWhereClauses: AdapterUtils["normalizeWhereClauses"] = (
@@ -339,61 +388,44 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
     }
 
     if (where.length === 1) {
-      const [w] = where
+      const [clause] = where
 
-      if (!w) {
+      if (!clause) {
         return {}
       }
 
-      const path = getFieldPath(metadata, w.field, true)
+      const path = getFieldPath(metadata, clause.field, true)
 
-      switch (w.operator) {
-        case "in":
-          return createWhereInClause(w.field, path, w.value)
-        case "not_in":
-          return createWhereClause(path, w.value, "$nin")
-        case "contains":
-          return createWhereClause(path, `%${w.value}%`, "$like")
-        case "starts_with":
-          return createWhereClause(path, `${w.value}%`, "$like")
-        case "ends_with":
-          return createWhereClause(path, `%${w.value}`, "$like")
-        // The next 5 case statemets are _expected_ to fall through so we can simplify and reuse the same logic for these operators
-        case "gt":
-        case "gte":
-        case "lt":
-        case "lte":
-        case "ne":
-          return createWhereClause(path, w.value, `$${w.operator}`)
-        default:
-          return createWhereClause(path, w.value)
-      }
+      return normalizeWhereClause(path, clause)
     }
 
     const result: Record<string, any> = {}
 
     where
       .filter(({connector}) => !connector || connector === "AND")
-      .forEach(({field, operator, value}, index) => {
-        const path = ["$and", index].concat(getFieldPath(metadata, field, true))
+      .forEach((clause, index) => {
+        const path = ["$and", index].concat(
+          getFieldPath(metadata, clause.field, true)
+        )
 
-        if (operator === "in") {
-          createWhereInClause(field, path, value, result)
-        } else {
-          createWhereClause(path, value, "eq", result)
-        }
+        normalizeWhereClause(path, clause, result)
       })
 
     where
       .filter(({connector}) => connector === "OR")
-      .forEach(({field, value}, index) => {
-        const path = ["$or", index].concat(getFieldPath(metadata, field, true))
+      .forEach((clause, index) => {
+        const path = ["$or", index].concat(
+          getFieldPath(metadata, clause.field, true)
+        )
 
-        createWhereClause(path, value, "eq", result)
+        normalizeWhereClause(path, clause, result)
       })
 
     return result
   }
+
+  const normalizeSelect: AdapterUtils["normalizeSelect"] = (model, select) =>
+    select?.map(field => config.getFieldName({model, field}))
 
   return {
     getEntityMetadata,
@@ -401,6 +433,7 @@ export function createAdapterUtils(orm: AnyMikroOrm): AdapterUtils {
     getFieldPath,
     normalizeInput,
     normalizeOutput,
-    normalizeWhereClauses
+    normalizeWhereClauses,
+    normalizeSelect
   }
 }

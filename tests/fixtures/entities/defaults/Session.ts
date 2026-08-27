@@ -1,19 +1,21 @@
-import {defineEntity, p} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/sqlite"
 
-import {BaseProperties} from "../shared/Base.js"
-import {User} from "./User.js"
+import {Base} from "../shared/Base.ts"
+import {User} from "./User.ts"
 
-const SessionSchema = defineEntity({
+export const SessionSchema = defineEntity({
   name: "Session",
+  extends: Base,
   properties: {
-    ...BaseProperties,
-    token: p.string().unique(),
+    token: p.string(),
     expiresAt: p.datetime(),
-    ipAddress: p.string().nullable().default(null),
-    userAgent: p.string().nullable().default(null),
+    ipAddress: p.string().nullable(),
+    userAgent: p.string().nullable(),
+
     user: () => p.manyToOne(User)
   }
 })
 
 export class Session extends SessionSchema.class {}
+
 SessionSchema.setClass(Session)

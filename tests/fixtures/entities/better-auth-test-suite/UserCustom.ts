@@ -5,19 +5,17 @@ import type {EntityShape} from "../../../utils/types.ts"
 
 import {Address} from "./Address.ts"
 import {Base} from "./Base.ts"
-import {Sessions} from "./Sessions.ts"
 
 type DBUser = Omit<BAUser, "email">
 
 export const UserSchema = defineEntity({
-  name: "User",
+  name: "UserCustom",
   extends: Base,
   properties: {
     email_address: p.string(),
     emailVerified: p.boolean(),
     name: p.string(),
     image: p.string().nullable(),
-    sessions: () => p.oneToMany(Sessions).mappedBy(session => session.user),
     test: p.string().nullable(),
     address: () => p.embedded(Address).object().nullable(),
     customField: p.string().nullable(),
@@ -32,6 +30,6 @@ export const UserSchema = defineEntity({
   ]
 })
 
-export class User extends UserSchema.class implements DBUser {}
+export class UserCustom extends UserSchema.class implements DBUser {}
 
-UserSchema.setClass(User)
+UserSchema.setClass(UserCustom)

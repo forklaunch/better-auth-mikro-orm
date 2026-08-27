@@ -1,16 +1,17 @@
-import {defineEntity, p} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/sqlite"
 
-import {BaseProperties} from "../shared/Base.js"
+import {Base} from "../shared/Base.ts"
 
-const CustomUserSchema = defineEntity({
+export const CustomUserSchema = defineEntity({
   name: "CustomUser",
+  extends: Base,
   properties: {
-    ...BaseProperties,
-    email: p.string().unique(),
+    email: p.string(),
     emailVerified: p.boolean().default(false),
     name: p.string()
   }
 })
 
 export class CustomUser extends CustomUserSchema.class {}
+
 CustomUserSchema.setClass(CustomUser)

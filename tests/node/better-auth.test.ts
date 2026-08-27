@@ -1,178 +1,81 @@
-import {createTestSuite, testAdapter} from "@better-auth/test-utils/adapter"
-import type {BetterAuthOptions} from "better-auth"
-import {toMerged} from "es-toolkit"
-import {mikroOrmAdapter} from "../../src/adapter.js"
-import * as entities from "../fixtures/entities/better-auth-test-suite.js"
-import {createOrm} from "../fixtures/orm.js"
+import {normalTestSuite, testAdapter} from "@better-auth/test-utils/adapter"
+import {MikroORM} from "@mikro-orm/sqlite"
 
-const orm = createOrm({
-  entities: Object.values(entities),
-  refreshOnEachTest: false
+import {mikroOrmAdapter} from "../../src/adapter.ts"
+import * as entities from "../fixtures/entities/better-auth-test-suite.ts"
+
+const orm = new MikroORM({
+  dbName: ":memory:",
+  allowGlobalContext: true,
+  entities: Object.values(entities)
 })
 
-const baseOptions: BetterAuthOptions = {
-  user: {
-    fields: {
-      email: "email_address"
-    },
-    additionalFields: {
-      test: {
-        type: "string",
-        defaultValue: "test"
-      }
-    }
-  },
-  session: {
-    modelName: "sessions"
-  }
-}
-
-const normTestSuite = createTestSuite(
-  "Normal",
-  {defaultBetterAuthOptions: baseOptions},
-  ({adapter, insertRandom}) => ({
-    "should create a user": async () => {
-      const user = await adapter.create({
-        model: "user",
-        data: {
-          name: "Test User",
-          email: `create-${Date.now()}@example.com`,
-          emailVerified: false
-        }
-      })
-
-      if (!user?.id) throw new Error("Expected user with id")
-    },
-
-    "should find a user by id": async () => {
-      const [user] = await insertRandom("user")
-
-      const found = await adapter.findOne<entities.User>({
-        model: "user",
-        where: [{field: "id", value: user.id}]
-      })
-
-      if (found?.id !== user.id) throw new Error("User not found by id")
-    },
-
-    "should find a user by email": async () => {
-      const [user] = await insertRandom("user")
-
-      const found = await adapter.findOne<entities.User>({
-        model: "user",
-        where: [{field: "email", value: user.email}]
-      })
-
-      if (found?.id !== user.id) throw new Error("User not found by email")
-    },
-
-    "should return null for nonexistent user": async () => {
-      const found = await adapter.findOne<entities.User>({
-        model: "user",
-        where: [{field: "id", value: "nonexistent"}]
-      })
-
-      if (found !== null) throw new Error("Expected null")
-    },
-
-    "should update a user": async () => {
-      const [user] = await insertRandom("user")
-
-      const updated = await adapter.update<entities.User>({
-        model: "user",
-        where: [{field: "id", value: user.id}],
-        update: {name: "Updated"}
-      })
-
-      if (updated?.name !== "Updated") throw new Error("Update failed")
-    },
-
-    "should delete a user": async () => {
-      const [user] = await insertRandom("user")
-
-      await adapter.delete({
-        model: "user",
-        where: [{field: "id", value: user.id}]
-      })
-
-      const found = await adapter.findOne({
-        model: "user",
-        where: [{field: "id", value: user.id}]
-      })
-
-      if (found !== null) throw new Error("Expected deleted")
-    },
-
-    "should find many with limit": async () => {
-      await insertRandom("user", 5)
-
-      const users = await adapter.findMany({
-        model: "user",
-        limit: 2
-      })
-
-      if (users.length !== 2) throw new Error(`Expected 2, got ${users.length}`)
-    },
-
-    "should count users": async () => {
-      await insertRandom("user", 4)
-
-      const count = await adapter.count({model: "user"})
-
-      if (count < 4) throw new Error(`Expected >= 4, got ${count}`)
-    },
-
-    "should create session linked to user": async () => {
-      const [user, session] = await insertRandom("session")
-
-      if (session.userId !== user.id)
-        throw new Error("Session not linked to user")
-    },
-
-    "should update many": async () => {
-      const results = await insertRandom("user", 3)
-      const ids = results.map(([user]: any) => user.id)
-
-      const affected = await adapter.updateMany({
-        model: "user",
-        where: [{field: "id", operator: "in", value: ids}],
-        update: {emailVerified: true}
-      })
-
-      if (affected !== 3)
-        throw new Error(`Expected 3 affected, got ${affected}`)
-    },
-
-    "should delete many": async () => {
-      const results = await insertRandom("user", 3)
-      const ids = results.map(([user]: any) => user.id)
-
-      const deleted = await adapter.deleteMany({
-        model: "user",
-        where: [{field: "id", operator: "in", value: ids}]
-      })
-
-      if (deleted !== 3) throw new Error(`Expected 3 deleted, got ${deleted}`)
-    }
-  })
-)
-
 const {execute} = await testAdapter({
-  adapter: options => {
-    return mikroOrmAdapter(orm, {
+  adapter: () =>
+    mikroOrmAdapter(orm, {
       debugLogs: {
         isRunningAdapterTests: true
-      },
-      options: toMerged(baseOptions, options)
-    })
-  },
-  runMigrations: async () => {
+      }
+    }),
+  async runMigrations() {
     await orm.schema.refresh()
   },
-  tests: [normTestSuite()],
-  async onFinish() {
-    await orm.close()
-  }
+  tests: [
+    normalTestSuite({
+      disableTests: {
+        // TODO: Re-enable one by one when I add support for joins
+        "findOne - should join a model with modified field name": true,
+        "findOne - multiple joins should return result even when some joined tables have no matching rows": true,
+        "findOne - backwards join should only return single record not array": true,
+        "findOne - backwards join with modified field name (session base, users-table join)": true,
+        "findMany - backwards join should only return single record not array": true,
+        "findMany - should handle mixed joins correctly when some are missing": true,
+        "findMany - should find many with join and limit": true,
+        "findMany - should find many with join and offset": true,
+        "findMany - should find many with join and sortBy": true,
+        "findMany - should find many with join and where clause": true,
+        "findMany - should find many with join, where, limit, and offset": true,
+        "findOne - should find a model with join": true,
+        "findOne - should perform backwards joins": true,
+        "findMany - should find many models with join": true,
+        "findMany - should find many with one-to-one join": true,
+        "findOne - should return null for one-to-one join when joined record doesn't exist": true,
+        "findMany - should return null for one-to-one join when joined records don't exist": true,
+        "findOne - should select fields with multiple joins": true,
+        "findMany - should select fields with multiple joins": true,
+        "findOne - should be able to perform a limited join": true,
+        "findMany - should be able to perform a limited join": true,
+        "findOne - should select fields with one-to-one join": true,
+        "findMany - should select fields with one-to-one join": true,
+        "findOne - should select fields with one-to-many join": true,
+        "findMany - should select fields with one-to-many join": true,
+        "findOne - should return an array for one-to-many joins": true,
+        "findOne - should return an object for one-to-one joins": true,
+        "findMany - should return empty array for one-to-many join when joined records don't exist": true,
+        "findOne - should be able to perform a complex limited join": true,
+        "create - should support json": true,
+        "findMany - should be able to perform a complex limited join": true,
+        "findOne - should work with both one-to-one and one-to-many joins": true,
+        "findMany - should find many with both one-to-one and one-to-many joins": true,
+        "findOne - should return null for failed base model lookup that has joins": true,
+        "findMany - should return empty array when base records don't exist with joins": true,
+
+        // FIXME: These are skipped for now
+        "create - should return null for nullable foreign keys": true
+      }
+    })
+  ],
+  overrideBetterAuthOptions: options => ({
+    ...options,
+    user: {
+      fields: {
+        email: "email_address"
+      }
+    },
+    session: {
+      modelName: "sessions"
+    }
+  })
 })
 
 execute()

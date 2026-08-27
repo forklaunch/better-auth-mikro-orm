@@ -1,8 +1,8 @@
 import {beforeEach, expect, suite, test} from "vitest"
 
-import {mikroOrmAdapter} from "../../src/index.js"
-import {DeviceCode} from "../fixtures/entities/device-code/DeviceCode.js"
-import {createOrm} from "../fixtures/orm.js"
+import {mikroOrmAdapter} from "../../src/adapter.ts"
+import {DeviceCode} from "../fixtures/entities/device-code/DeviceCode.ts"
+import {createOrm} from "../fixtures/orm.ts"
 
 const orm = createOrm({entities: [DeviceCode]})
 
