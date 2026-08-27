@@ -3,7 +3,7 @@ import {
   type AdapterFactoryCustomizeAdapterCreator,
   createAdapterFactory
 } from "better-auth/adapters"
-import type {BetterAuthOptions} from "better-auth/types"
+import type {BetterAuthOptions, Where} from "better-auth/types"
 import {dset} from "dset"
 import {createAdapterUtils} from "./utils/adapterUtils.js"
 import type {AnyMikroOrm} from "./utils/anyMikroOrm.js"
@@ -150,6 +150,82 @@ const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
           normalizeWhereClauses(metadata, where),
           normalizeInput(metadata, update as any)
         )
+      },
+
+      // Guarded conditional update. The `where` is both selector and guard: if
+      // no row matches it, nothing is written and null is returned, which is
+      // what lets callers use this as a compare-and-set.
+      //
+      // Two independent payloads arrive, and BOTH are required:
+      //
+      //   increment - fields to add to, read-modify-write against the current row
+      //   set       - fields to assign outright, independent of their old value
+      //
+      // Handling only `increment` looks sufficient because the method is named
+      // for it, but Better Auth calls this with an EMPTY `increment` and a
+      // populated `set` whenever it wants a guarded assignment. The device
+      // authorization flow is the case that matters most:
+      //
+      //   incrementOne({
+      //     model: "deviceCode",
+      //     where: [{id}, {status: "pending"}, {userId: null}],
+      //     increment: {},
+      //     set: {userId: session.user.id}
+      //   })
+      //
+      // That is how a browser claims a pending CLI login code. Dropping `set`
+      // made it a silent no-op: the loop over an empty `increment` produced an
+      // empty patch, flush wrote nothing, and the row kept `userId = null` — so
+      // the later approve step correctly refused to approve an unclaimed code
+      // and CLI login could never complete.
+      //
+      // Silent is the operative word. The truthy entity returned below tells
+      // Better Auth the claim succeeded, so it updates its in-memory copy and
+      // reports success while the database row is unchanged. Nothing errors and
+      // nothing logs; the failure only surfaces one request later.
+      //
+      // The same shape is used by the rate limiter, two-factor verification and
+      // backup-code redemption, all of which combine a counter with a guarded
+      // field assignment.
+      async incrementOne({
+        model,
+        where,
+        increment,
+        set
+      }: {
+        model: string
+        where: Where[]
+        increment?: Record<string, number>
+        set?: Record<string, unknown>
+      }) {
+        const metadata = getEntityMetadata(model)
+
+        const entity = await orm.em.findOne(
+          metadata.class,
+          normalizeWhereClauses(metadata, where)
+        )
+
+        if (!entity) {
+          return null
+        }
+
+        const current = normalizeOutput(metadata, entity) as Record<
+          string,
+          unknown
+        >
+
+        // `set` is applied first so an explicit assignment cannot silently
+        // overwrite a computed counter when a caller names the same field in
+        // both payloads; the increment is the more specific intent.
+        const patch: Record<string, unknown> = {...set}
+        for (const [field, by] of Object.entries(increment ?? {})) {
+          patch[field] = (Number(current[field]) || 0) + (by as number)
+        }
+
+        orm.em.assign(entity, normalizeInput(metadata, patch as any))
+        await orm.em.flush()
+
+        return normalizeOutput(metadata, entity) as any
       },
 
       async delete({model, where}) {
