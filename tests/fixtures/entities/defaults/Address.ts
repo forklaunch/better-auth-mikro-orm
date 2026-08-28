@@ -1,6 +1,6 @@
-import {defineEntity, p} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/sqlite"
 
-const AddressSchema = defineEntity({
+export const AddressSchema = defineEntity({
   name: "Address",
   embeddable: true,
   properties: {
@@ -10,4 +10,5 @@ const AddressSchema = defineEntity({
 })
 
 export class Address extends AddressSchema.class {}
+
 AddressSchema.setClass(Address)

@@ -1,20 +1,27 @@
-import {defineEntity, p} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/sqlite"
 
-import {BaseProperties} from "../shared/Base.js"
-import {Address} from "./Address.js"
-import {Session} from "./Session.js"
+import {Base} from "../shared/Base.ts"
+
+import {Address} from "./Address.ts"
+import {Session} from "./Session.ts"
 
 const UserSchema = defineEntity({
   name: "User",
+  extends: Base,
   properties: {
-    ...BaseProperties,
-    email: p.string().unique(),
+    email: p.string(),
     emailVerified: p.boolean().default(false),
     name: p.string(),
-    sessions: () => p.oneToMany(Session).mappedBy(s => s.user),
-    address: () => p.embedded(Address).object().nullable()
-  }
+    sessions: () => p.oneToMany(Session).mappedBy(session => session.user),
+    address: () => p.embedded(Address).nullable()
+  },
+  uniques: [
+    {
+      properties: "email"
+    }
+  ]
 })
 
 export class User extends UserSchema.class {}
+
 UserSchema.setClass(User)

@@ -1,15 +1,15 @@
 import {defineEntity, p} from "@mikro-orm/core"
 import {expect, suite, test} from "vitest"
 
-import {mikroOrmAdapter} from "../../src/index.js"
-import * as entities from "../fixtures/entities/defaults.js"
-import {BaseProperties} from "../fixtures/entities/shared/Base.js"
-import {createOrm} from "../fixtures/orm.js"
+import {mikroOrmAdapter} from "../../src/adapter.ts"
+import * as entities from "../fixtures/entities/defaults.ts"
+import {Base} from "../fixtures/entities/shared/Base.ts"
+import {createOrm} from "../fixtures/orm.ts"
 
 const DeviceCodeSchema = defineEntity({
   name: "DeviceCode",
+  extends: Base,
   properties: {
-    ...BaseProperties,
     deviceCode: p.string(),
     userCode: p.string(),
     status: p.string()

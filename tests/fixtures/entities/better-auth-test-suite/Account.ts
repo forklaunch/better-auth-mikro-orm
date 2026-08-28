@@ -1,24 +1,41 @@
-import {defineEntity, p} from "@mikro-orm/core"
+import {defineEntity, p} from "@mikro-orm/sqlite"
+import type {Account as BAAccount} from "better-auth"
 
-import {BaseProperties} from "../shared/Base.js"
-import {User} from "./User.js"
+import type {EntityShape} from "../../../utils/types.ts"
+import {Base} from "./Base.ts"
+import {User} from "./User.ts"
 
-const AccountSchema = defineEntity({
+type DBAccount = Omit<BAAccount, "userId">
+
+export const AccountSchema = defineEntity({
   name: "Account",
+  extends: Base,
   properties: {
-    ...BaseProperties,
+    // Added by Better Auth 1.7, which scopes account identity by issuer and
+    // places a unique index on (issuer, accountId). Required, not nullable.
+    issuer: p.string(),
     accountId: p.string(),
     providerId: p.string(),
-    accessToken: p.string().nullable().default(null),
-    refreshToken: p.string().nullable().default(null),
-    idToken: p.string().nullable().default(null),
-    accessTokenExpiresAt: p.datetime().nullable().default(null),
-    refreshTokenExpiresAt: p.datetime().nullable().default(null),
-    scope: p.string().nullable().default(null),
-    password: p.string().nullable().default(null),
+    accessToken: p.string().nullable(),
+    refreshToken: p.string().nullable(),
+    accessTokenExpiresAt: p.datetime().nullable(),
+    refreshTokenExpiresAt: p.datetime().nullable(),
+    scope: p.string().nullable(),
+    idToken: p.string().nullable(),
+    password: p.string().nullable(),
+    // Better Auth addresses this as `userId`; the adapter resolves that to the
+    // owning relation, exactly as Sessions does.
     user: () => p.manyToOne(User)
-  }
+  } satisfies EntityShape<DBAccount, keyof Base>,
+  // Better Auth 1.7 scopes account identity by issuer and expects the database
+  // to enforce it — the suite asserts that a duplicate pair is rejected.
+  uniques: [
+    {
+      properties: ["issuer", "accountId"]
+    }
+  ]
 })
 
-export class Account extends AccountSchema.class {}
+export class Account extends AccountSchema.class implements DBAccount {}
+
 AccountSchema.setClass(Account)

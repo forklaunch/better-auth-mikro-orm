@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - next
 
 concurrency: ${{github.workflow}}-${{github.ref}}
 
@@ -26,11 +27,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Setup pnpm
         id: pnpm-install
-        uses: pnpm/action-setup@v4.2.0
+        uses: pnpm/action-setup@v6.0.8
         with:
           run_install: false
       
@@ -54,7 +55,6 @@ jobs:
         id: changesets
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
         uses: changesets/action@v1
         with:
           title: Next release
