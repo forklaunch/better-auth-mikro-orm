@@ -145,6 +145,19 @@ export function createAdapterUtils(
         return true
       }
 
+      // Many-to-many is matched the same way. Upstream has never carried this
+      // branch, so it is lost every time these utils are re-taken from
+      // upstream — and its absence is not a type error, it surfaces at runtime
+      // as `Can't find property "<field>" on entity "<Entity>"` on the first
+      // write that touches the collection.
+      if (
+        prop.kind === ReferenceKind.MANY_TO_MANY &&
+        (prop.name === fieldName ||
+          prop.fieldNames.includes(naming.propertyToColumnName(fieldName)))
+      ) {
+        return true
+      }
+
       return false
     })
 
@@ -170,6 +183,12 @@ export function createAdapterUtils(
 
     if (prop.kind === ReferenceKind.MANY_TO_ONE) {
       return naming.columnNameToProperty(naming.joinColumnName(prop.name))
+    }
+
+    // A many-to-many is addressed by its own property name: it owns no column
+    // on this table, so there is no join column to derive one from.
+    if (prop.kind === ReferenceKind.MANY_TO_MANY) {
+      return prop.name
     }
 
     createAdapterError(
