@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.5.10
+
+### Patch Changes
+
+- [`a4e6d7d`](https://github.com/octet-stream/better-auth-mikro-orm/commit/a4e6d7dfc3942b33e2001a7b17ae2ed219b22243) Thanks [@RohinBhargava](https://github.com/RohinBhargava)! - Return `@forklaunch/core` compliant fields (pii/phi/pci properties) to Better Auth as their values. They serialize as `{}` by design, which broke sign-in for encrypted account columns (password, tokens) and JWKS keys.
+
 ## 0.5.4
 
 ### Patch Changes
