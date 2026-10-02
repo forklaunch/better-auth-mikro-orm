@@ -285,7 +285,7 @@ export function createAdapterUtils(
     select
   ): Record<string, any> => {
     let result: Record<string, any> = {}
-    const serializedOutput = serialize(output)
+    const serializedOutput = revealCompliantFields(output, serialize(output))
 
     Object.entries(serializedOutput)
       .map(([key, value]) => ({
@@ -455,4 +455,35 @@ export function createAdapterUtils(
     normalizeWhereClauses,
     normalizeSelect
   }
+}
+
+/**
+ * `@forklaunch/core` compliant fields (pii/phi/pci properties) serialize as
+ * `{}` by design: their values are reachable only through `.anon` and
+ * `.deanon`. Better Auth needs the real values it stored (password hashes,
+ * OAuth tokens, keys), and this adapter is its storage layer, so it reveals
+ * them explicitly. Detected by brand, so the adapter does not depend on
+ * `@forklaunch/core`.
+ */
+const COMPLIANT_FIELD = Symbol.for("forklaunch.compliance.field")
+
+function isCompliantField(value: unknown): value is {deanon: unknown} {
+  return (
+    value != null &&
+    typeof value === "object" &&
+    (value as Record<symbol, unknown>)[COMPLIANT_FIELD] === true
+  )
+}
+
+function revealCompliantFields(
+  entity: object,
+  serialized: Record<string, any>
+): Record<string, any> {
+  for (const key of Object.keys(serialized)) {
+    const value = (entity as Record<string, unknown>)[key]
+    if (isCompliantField(value)) {
+      serialized[key] = value.deanon
+    }
+  }
+  return serialized
 }
