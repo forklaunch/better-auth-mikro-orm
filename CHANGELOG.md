@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.5.11
+
+### Patch Changes
+
+- [#7](https://github.com/forklaunch/better-auth-mikro-orm/pull/7) [`33f029f`](https://github.com/forklaunch/better-auth-mikro-orm/commit/33f029f8b3ce8ade9029648195e86352a10bd6e9) Thanks [@RohinBhargava](https://github.com/RohinBhargava)! - Add an optional trusted operation context around adapter operations and complete transactions, allowing encrypted auth fields to work for both HTTP and direct BetterAuth API calls without changing existing ciphertext policies.
+
 ## 0.5.10
 
 ### Patch Changes
