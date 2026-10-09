@@ -88,7 +88,15 @@ const verification = defineEntity({
     expiresAt: p.datetime()
   }
 })
-const orm = createOrm({entities: [user, account, session, verification]})
+class User extends user.class {}
+user.setClass(User)
+class Account extends account.class {}
+account.setClass(Account)
+class Session extends session.class {}
+session.setClass(Session)
+class Verification extends verification.class {}
+verification.setClass(Verification)
+const orm = createOrm({entities: [User, Account, Session, Verification]})
 const context = <T>(run: () => Promise<T>) => scope.run(key, run)
 const database = mikroOrmAdapter(orm, {operationContext: context})
 const auth = betterAuth({
