@@ -12,7 +12,15 @@ import type {AnyMikroOrm} from "./utils/anyMikroOrm.ts"
 
 export type {AnyMikroOrm} from "./utils/anyMikroOrm.ts"
 
+export type OperationContext = <T>(operation: () => Promise<T>) => Promise<T>
+
 export interface MikroOrmAdapterConfig {
+  /** Trusted application context for every database operation and transaction.
+   * Establish encryption/audit scope here; never derive it from unverified input.
+   * Omitted preserves existing behavior and ciphertext interpretation.
+   */
+  operationContext?: OperationContext
+
   /**
    * Enable debug logs.
    *
@@ -38,8 +46,12 @@ export interface MikroOrmAdapterConfig {
   options?: BetterAuthOptions
 }
 
-const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
-  orm => config => {
+const adapter =
+  (
+    orm: AnyMikroOrm,
+    operationContext?: OperationContext
+  ): AdapterFactoryCustomizeAdapterCreator =>
+  config => {
     const {
       getEntityMetadata,
       getFieldPath,
@@ -49,7 +61,7 @@ const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
       normalizeSelect
     } = createAdapterUtils(orm, config)
 
-    return {
+    const operations: ReturnType<AdapterFactoryCustomizeAdapterCreator> = {
       async create({model, data, select}) {
         const metadata = getEntityMetadata(model)
         const input = normalizeInput(metadata, data)
@@ -323,6 +335,16 @@ const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
         return normalizeOutput(metadata, entity) as any
       }
     }
+    if (!operationContext) return operations
+    return new Proxy(operations, {
+      get(target, property, receiver) {
+        const value = Reflect.get(target, property, receiver)
+        return typeof value === "function"
+          ? (...args: unknown[]) =>
+              operationContext(() => value.apply(target, args))
+          : value
+      }
+    })
   }
 
 /**
@@ -338,7 +360,12 @@ const adapter: (orm: AnyMikroOrm) => AdapterFactoryCustomizeAdapterCreator =
  */
 export const mikroOrmAdapter = (
   orm: AnyMikroOrm,
-  {debugLogs, supportsJSON = true, options}: MikroOrmAdapterConfig = {}
+  {
+    debugLogs,
+    supportsJSON = true,
+    options,
+    operationContext
+  }: MikroOrmAdapterConfig = {}
 ) => {
   // Better Auth invokes the returned factory with the fully-resolved auth
   // options (including plugin schemas). The transactional adapter must be
@@ -349,31 +376,33 @@ export const mikroOrmAdapter = (
   let resolvedOptions: BetterAuthOptions | undefined
 
   const factory = createAdapterFactory({
-    adapter: adapter(orm),
+    adapter: adapter(orm, operationContext),
     config: {
       adapterId: "mikro-orm-adapter",
       adapterName: "Mikro ORM Adapter",
       debugLogs,
       supportsJSON,
       transaction: async cb => {
-        return orm.em.transactional(async () => {
-          return cb(
-            createAdapterFactory({
-              adapter: adapter(orm),
-              config: {
-                debugLogs,
-                supportsJSON,
-                adapterId: "mikro-orm-adapter-transaction",
-                adapterName: "Mikro ORM Adapter Transaction"
-              }
-            })(
-              // Prefer the options Better Auth resolved the outer factory
-              // with — an explicit `options` config is typically partial (no
-              // plugin schemas) and must not shadow them.
-              resolvedOptions ?? options ?? {}
+        const transaction = () =>
+          orm.em.transactional(async () => {
+            return cb(
+              createAdapterFactory({
+                adapter: adapter(orm, operationContext),
+                config: {
+                  debugLogs,
+                  supportsJSON,
+                  adapterId: "mikro-orm-adapter-transaction",
+                  adapterName: "Mikro ORM Adapter Transaction"
+                }
+              })(
+                // Prefer the options Better Auth resolved the outer factory
+                // with — an explicit `options` config is typically partial (no
+                // plugin schemas) and must not shadow them.
+                resolvedOptions ?? options ?? {}
+              )
             )
-          )
-        })
+          })
+        return operationContext ? operationContext(transaction) : transaction()
       }
     }
   })
