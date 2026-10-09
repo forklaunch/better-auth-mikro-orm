@@ -62,3 +62,24 @@ Returns the `AdapterInstance` function for the Better Auth `database` option.
 This function expects a single argument:
 
 - `orm` - An instance of `MikroORM` returned from either `MikroORM.init` or `MikroORM.initSync`.
+
+### Application operation context
+
+Applications with encrypted database fields can supply `operationContext` to
+`mikroOrmAdapter`. It runs around every adapter operation (including output
+normalization) and the entire transaction, including its final flush. This also
+covers direct `auth.api` calls without an HTTP middleware wrapper.
+
+```ts
+mikroOrmAdapter(orm, {
+  operationContext: operation => trustedEncryptionScope.run(appKey, operation)
+})
+```
+
+The adapter does not choose an encryption key or tenant, import an encryption
+library, reinterpret existing ciphertext, or supply a fallback context. The
+application must choose its trusted scope. An identity shared across organizations
+usually needs an explicit application-owned identity policy rather than the
+currently selected business organization. Changing an existing policy requires a
+separately reviewed ciphertext migration. Omitting this option preserves existing
+adapter behavior. Do not use request body fields to choose an encryption scope.
