@@ -1,5 +1,11 @@
 # better-auth-mikro-orm
 
+## 0.5.12
+
+### Patch Changes
+
+- [#10](https://github.com/forklaunch/better-auth-mikro-orm/pull/10) [`abde984`](https://github.com/forklaunch/better-auth-mikro-orm/commit/abde98426542e87e583f5fd7fc0d0c56965acbcc) Thanks [@RohinBhargava](https://github.com/RohinBhargava)! - Prevent consumed verification values from being reinserted by a later EntityManager flush. Read the consumption snapshot without registering it in the identity map, and preserve the guarded delete so concurrent consumers still have exactly one winner.
+
 ## 0.5.11
 
 ### Patch Changes
