@@ -28,6 +28,23 @@ jobs:
         node: [20.x, 22.x, 24.x, 25.x]
     runs-on: ${{matrix.os}}
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: adapter-test-only
+          POSTGRES_DB: adapter_consume_regression
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      ADAPTER_TEST_POSTGRES_URL: postgresql://postgres:adapter-test-only@127.0.0.1:5432/adapter_consume_regression
+
     steps:
       - uses: actions/checkout@v6
 
