@@ -227,7 +227,12 @@ const adapter =
         const metadata = getEntityMetadata(model)
         const filter = normalizeWhereClauses(metadata, where)
 
-        const entity = await orm.em.findOne(metadata.class, filter)
+        // This is a snapshot, not an entity to persist. In particular,
+        // unsetting the identity of a transaction's managed entity can make
+        // a parent context reinsert the consumed credential on a later flush.
+        const entity = await orm.em.findOne(metadata.class, filter, {
+          disableIdentityMap: true
+        })
 
         if (!entity) {
           return null
@@ -246,11 +251,6 @@ const adapter =
           // Another caller consumed it between the read and the delete.
           return null
         }
-
-        // nativeDelete bypasses the identity map, so the deleted row would
-        // otherwise linger there and be handed back by a later findOne on the
-        // same EntityManager.
-        orm.em.getUnitOfWork().unsetIdentity(entity)
 
         return snapshot
       },
